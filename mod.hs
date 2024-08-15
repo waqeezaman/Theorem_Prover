@@ -1,9 +1,4 @@
 import FOL
-
-
-
-
-
  
 functions:: Int -> String -> [Int] -> Int
 
@@ -30,7 +25,7 @@ sig = sigN n
 
 
 formula = 
-    Forall (Var "X") 
+    Forall "X" 
             (Or
                 (Atom  (R ("=",  [ Fn ("0",  []) , Var "X"  ] ) ) )
                 (Atom  (R ("=",  [ Fn ("1",  [])  , Var "X" ] ) ) )
@@ -38,13 +33,13 @@ formula =
             ) 
 
 
-formula2 = Forall (Var "X")
+formula2 = Forall "X"
                 (Imp
                     (Not  
                         (Atom (R ("=",  [ Fn ("0",  []) , Var "X"  ] )) )
                     )
-                    (Exists (Var "Y")
-                        (Atom  (R ("=",  [ Fn ("1",  [])  , (Fn ("*" , [Var "X", Var "Y"]) )   ] ) ) )
+                    (Exists "Y"
+                        (Atom  (R ("=",  [ Fn ("1",  [])  , Fn ("*" , [Var "X", Var "Y"])    ] ) ) )
                     )
                 )
 

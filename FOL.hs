@@ -1,4 +1,8 @@
 module FOL where 
+import Data.List (union, delete)
+
+import Data.Set (Set)
+import qualified Data.Set as Set
 
     
 data Term = Var String | Fn (String , [Term] ) deriving (Eq,Show)
@@ -8,7 +12,7 @@ data Predicate = R (String, [Term])  deriving (Eq, Show)
 data Formula = FFalse | FTrue | Atom Predicate | Not Formula 
                 | And Formula Formula | Or Formula Formula 
                 | Imp Formula Formula | Iff Formula Formula
-                | Forall  Term Formula | Exists Term Formula 
+                | Forall  String Formula | Exists String Formula deriving (Eq,Show)
 
 
 
@@ -44,13 +48,13 @@ holds (domain, functions, predicates) v (Iff p q) =
     holds (domain, functions, predicates) v p ==
     holds (domain, functions, predicates) v q 
 
-holds (domain, functions, predicates) v (Forall (Var p) q) = 
+holds (domain, functions, predicates) v (Forall p q) = 
    all  (\a -> let x = a in  holds (domain, functions, predicates ) 
                             (\x -> if x == p then a else v x) q
         )
    domain
 
-holds (domain, functions, predicates) v (Exists (Var p) q) = 
+holds (domain, functions, predicates) v (Exists p q) = 
    any  (\a -> let x = a in  holds (domain, functions, predicates ) 
                             (\x -> if x == p then a else v x) q
         )
@@ -58,10 +62,30 @@ holds (domain, functions, predicates) v (Exists (Var p) q) =
 
 
 
-t1 =  Fn("Times", [Var "2", (Fn ("Subtract", [Var "98", Var "P"])  )    ])
 
-t2 = Fn("PI", [])
 
-predi = R ("<", [t1,t2])
+freeVariablesInTerm (Var x) = Set.singleton x
+freeVariablesInTerm (Fn (func, args)) =  Set.unions (map freeVariablesInTerm args)
+    
+
+
+
+freeVariablesInFormula FFalse = Set.empty
+freeVariablesInFormula FTrue = Set.empty
+freeVariablesInFormula  (Atom (R  (p ,args ) )) = Set.unions( map freeVariablesInTerm args)
+freeVariablesInFormula  (Not p) = freeVariablesInFormula p
+freeVariablesInFormula  (And p q) =  freeVariablesInFormula p `Set.union` freeVariablesInFormula q
+freeVariablesInFormula  (Or p q ) =  freeVariablesInFormula p `Set.union` freeVariablesInFormula q
+freeVariablesInFormula  (Imp p q) =  freeVariablesInFormula p `Set.union` freeVariablesInFormula q
+freeVariablesInFormula  (Iff p q) =  freeVariablesInFormula p `Set.union` freeVariablesInFormula q
+
+-- freeVariablesInFormula  (Forall x p) = delete x (freeVariablesInFormula p) 
+
+
+
+
+
+
+
 
 

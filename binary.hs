@@ -13,7 +13,7 @@ functions "*" [x,y] = x && y
 sig :: Eq d => ([Bool], String -> [Bool] -> Bool,   String -> [d] -> Bool)
 sig = ([False, True], functions, preds)
 
-formula = Forall(Var "X") 
+formula = Forall "X" 
     (And
         
         (Atom(R ( "=",  [ Var "X" , Fn ("+" ,[Var "X",Var "Y"] )  ])  ) ) 
