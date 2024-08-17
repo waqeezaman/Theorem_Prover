@@ -79,7 +79,16 @@ freeVariablesInFormula  (Or p q ) =  freeVariablesInFormula p `Set.union` freeVa
 freeVariablesInFormula  (Imp p q) =  freeVariablesInFormula p `Set.union` freeVariablesInFormula q
 freeVariablesInFormula  (Iff p q) =  freeVariablesInFormula p `Set.union` freeVariablesInFormula q
 
--- freeVariablesInFormula  (Forall x p) = delete x (freeVariablesInFormula p) 
+freeVariablesInFormula  (Forall x p) = Set.delete x (freeVariablesInFormula p)
+freeVariablesInFormula  (Exists x p) = Set.delete x (freeVariablesInFormula p)
+
+
+
+generalise formula =   foldr Forall formula   (Set.elems (freeVariablesInFormula formula))    
+
+
+-- substitute (Var x) term = 
+
 
 
 

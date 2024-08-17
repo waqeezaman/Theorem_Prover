@@ -7,5 +7,6 @@ t2 = Fn("PI", [])
 
 predi = R ("<", [t1,t2])
 
+formula = (  (Atom predi) `And` (Atom( R ("P",[Var "L"])) )  )
 
-main = print( freeVariablesInTerm t1)
+main = print( generalise formula )
