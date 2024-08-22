@@ -30,16 +30,45 @@ simp = FTrue `Imp` (   Atom(R ("P",[])) `Iff`  ( Atom(R ("P",[])) `Iff` FFalse )
 
 
 simp2 = 
-    -- Exists "X" 
-            -- (Exists "Y"
-                (Exists "Z"
-                        -- (
-                        --     Atom(R ("P",[Var "X"])) 
-                        --     `Imp`
-                         (   Atom(R ("Q",[Var "Z"]))  )
-                        -- )
-                        `Imp`
-                        FFalse
-                )
-            -- )
-main = print( folSimplify simp2 )
+    Forall "X" 
+            (Forall "Y"
+                (Forall "Z"
+                        (
+                            (
+                                Atom(R ("P",[Var "X"])) 
+                                `Imp`
+                                Atom(R ("Q",[Var "Z"]))  
+                            )
+
+                            
+                            `Imp`
+                            
+                            FFalse
+                        )
+                        
+                )    
+            )
+
+
+simp3 = Forall "X" 
+            (Forall "Y"
+                        (
+                            (
+                                   Atom(R ("P",[Var "X"])) 
+                                    `Or`
+                                    
+                                (
+                                    Atom(R ("P",[Var "Y"])) 
+                                    `And`
+                                    FFalse
+                                )
+
+                            )
+                            `Imp`
+
+                            Exists "Z"        (Atom(R ("Q",[])) )
+
+                        )
+                
+            )
+main = print( folSimplify simp3 )
