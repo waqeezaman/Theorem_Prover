@@ -2,8 +2,15 @@ module Simplification where
 
 
 import FOL
+import Substitution
 
+-- TODO: need to add more propositional tautologies 
+-- such as 
+-- P AND NOT P 
+-- P OR NOT P 
+-- P IFF NOT P
 
+propTautology :: Formula -> Formula
 
 propTautology (Not FTrue) = FFalse
 propTautology (Not FFalse) = FTrue
@@ -34,13 +41,16 @@ propTautology (p `Iff` FTrue) = p
 propTautology (FFalse `Iff` p) = Not p
 propTautology (p `Iff` FFalse) = Not p
 
+
+
 propTautology other = other 
 
 
 
--- propSimplify FFalse = FFalse
--- propSimplify FTrue = FTrue
--- propSimplify (Atom (R(pred, args))) = Atom (R(pred, args)) 
+
+
+
+propSimplify :: Formula -> Formula
 
 propSimplify (Not p) = propTautology (Not (propSimplify p))
 propSimplify (p `And` q) = propTautology ( propSimplify p `And` propSimplify q)
@@ -50,6 +60,11 @@ propSimplify (p `Iff` q) = propTautology ( propSimplify p `Iff` propSimplify q)
 
 propSimplify p = p 
 
+
+
+
+-- Removes redundant quantifiers in a formula 
+folSimplify1 :: Formula -> Formula
 
 folSimplify1 (Forall x p) = if x `elem` freeVariablesInFormula p then 
                                 Forall x p
@@ -63,6 +78,8 @@ folSimplify1 (Exists x p) = if x `elem` freeVariablesInFormula p then
 folSimplify1 p = propSimplify p
 
 
+
+folSimplify :: Formula -> Formula
 
 folSimplify (Not p) = folSimplify1( Not (folSimplify p) )
 
@@ -83,14 +100,4 @@ folSimplify p = p
 
 
 
-
-
-
-
-
--- propositionalSimplification (Not (p `And` q) ) = Not p `Or` Not q
--- propositionalSimplification (Not (p `Or` q) ) = Not p `And` Not q
-
--- propositionalSimplification (p `Imp` q) = Not p `Or` q
--- propositionalSimplification (p `Iff` q) = p `Imp` q `And` q `Imp` p 
 

@@ -1,3 +1,5 @@
+module ModTests where 
+
 import FOL
  
 functions:: Int -> String -> [Int] -> Int
@@ -14,7 +16,7 @@ predicates :: String -> [Int] -> Bool
 predicates "=" [x,y] = x==y
 predicates _ _ = error "Undefined Predicate"
 
-n = 4
+n = 3
 
 sigN n = ( [0..n-1], functions n, predicates   )
 
@@ -24,7 +26,7 @@ sig = sigN n
 
 
 
-formula = 
+formula1 = 
     Forall "X" 
             (Or
                 (Atom  (R ("=",  [ Fn ("0",  []) , Var "X"  ] ) ) )
@@ -33,20 +35,25 @@ formula =
             ) 
 
 
-formula2 = Forall "X"
-                (Imp
-                    (Not  
-                        (Atom (R ("=",  [ Fn ("0",  []) , Var "X"  ] )) )
-                    )
-                    (Exists "Y"
-                        (Atom  (R ("=",  [ Fn ("1",  [])  , Fn ("*" , [Var "X", Var "Y"])    ] ) ) )
-                    )
-                )
+-- formula2 = Forall "X"
+--                 (Imp
+--                     (Not  
+--                         (Atom (R ("=",  [ Fn ("0",  []) , Var "X"  ] )) )
+--                     )
+--                     (Exists "Y"
+--                         (Atom  (R ("=",  [ Fn ("1",  [])  , Fn ("*" , [Var "X", Var "Y"])    ] ) ) )
+--                     )
+--                 )
 
 valuation _ = 0
 
 
-result = holds sig valuation formula2
+test1 = holds sig valuation formula1 == False
 
-main = print result 
+
+
+
+runModTests =   "\n Running Mod Tests \n" ++
+                "\n Test 1: " ++ show test1 ++
+                "\n"
 
