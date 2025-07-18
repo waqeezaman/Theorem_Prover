@@ -71,5 +71,3 @@ holds (domain, functions, predicates) v (Exists p q) =
 
 
 
-
--- substitute (Var x) term = let subfunc' = 

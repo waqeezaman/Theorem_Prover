@@ -59,7 +59,7 @@ library
     import:           warnings
 
     -- Modules exported by the library.
-    exposed-modules:   FOL, Formula, Simplification, Substitution
+    exposed-modules:   FOL, Simplification, Substitution
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -84,7 +84,7 @@ executable Theorem-Prover
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:    FOL, Formula, Simplification
+    -- other-modules:    FOL, Simplification
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
