@@ -29,23 +29,29 @@ freeVariablesInFormula  (Exists x p) = Set.delete x (freeVariablesInFormula p)
 
 
 
+generalise :: Formula -> Formula
 generalise formula =   foldr Forall formula   (Set.elems (freeVariablesInFormula formula))   
 
 
+termSubstituition :: (Term -> Term) -> Term -> Term
 termSubstituition subfunc (Var x) = subfunc (Var x)
 termSubstituition subfunc (Fn (func , args)) = Fn (func ,  map subfunc args  )
 
 
+getVariant :: Foldable t => String -> t String -> String
 getVariant x vars = if x `elem`  vars then getVariant (x++"#") vars 
                     else x 
 
 
 
 
+formulaSubstituition :: (Term -> Term) -> Formula -> Formula
 formulaSubstituition subfunc FFalse = FFalse
 formulaSubstituition subfunc FTrue = FTrue
 
 formulaSubstituition subfunc (Atom(R(pred, args ))) =   Atom(R(pred, map (termSubstituition subfunc) args ))
+
+formulaSubstituition subfunc (Not p) = Not (formulaSubstituition subfunc p)
 
 formulaSubstituition subfunc (And p q) = formulaSubstituition subfunc p 
                                         `And`
@@ -68,6 +74,7 @@ formulaSubstituition subfunc (Exists x formula) = quantifierSubstituition subfun
 
 
 
+varString :: Term -> String
 varString (Var x ) = x
 
 
