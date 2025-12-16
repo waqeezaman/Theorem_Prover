@@ -5,12 +5,14 @@ import BinaryTests
 import ModTests (runModTests)
 import SimplificationTests (runSimplificationTests)
 import PrenexTests (runPrenexTests)
+import SkolemTests
 
 testOutputs =   runBinaryTests ++
                 runModTests ++
                 runSubstitutionTests ++ 
                 runSimplificationTests ++ 
-                runPrenexTests
+                runPrenexTests ++ 
+                runSkolemTests
 
 main :: IO ()
 main = putStrLn testOutputs

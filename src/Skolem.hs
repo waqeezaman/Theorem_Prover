@@ -37,7 +37,7 @@ skolem (Exists x p) funcs =
     let newFuncName = getVariant "SK" funcs in
     let newFunc = Fn(newFuncName, map Var (Set.toList freeVars)) in
     let newFormula = formulaSubstituition (\a -> if a == Var x then newFunc else a) p in
-        (newFormula, funcs++[newFuncName])
+        skolem newFormula (funcs++[newFuncName])
 
 skolem (Forall x p) funcs = 
     let (newFormula, newFuncs) = skolem p funcs

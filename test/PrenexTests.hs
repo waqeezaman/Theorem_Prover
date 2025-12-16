@@ -17,7 +17,6 @@ pnfFormula1 = Forall "X" (p `And` q)
 formula2 = (Forall "P" p) `And` p
 pnfFormula2 = Forall "P#" (p' `And` p)
 
-
 formula3 = p `And` (Forall "P" p)
 pnfFormula3 = Forall "P#" (p `And` p')
 
@@ -121,4 +120,3 @@ runPrenexTests =    "\n Running Prenex Tests: " ++
                     "\n Test 11: " ++  show test11 ++
                     "\n Test 12: " ++  show test12 ++
                     "\n"
-
