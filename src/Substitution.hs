@@ -1,20 +1,15 @@
 module Substitution where 
 
-import FOL
--- import Data.Set 
-import Data.List (union, delete)
-
+import FOL ( Formula(..), Predicate(R), Term(..) )
 import Data.Set (Set)
 import qualified Data.Set as Set
 
 
-
+freeVariablesInTerm :: Term -> Set String
 freeVariablesInTerm (Var x) = Set.singleton x
-freeVariablesInTerm (Fn (func, args)) =  Set.unions (map freeVariablesInTerm args)
+freeVariablesInTerm (Fn (_, args)) =  Set.unions (map freeVariablesInTerm args)
     
-
-
-
+freeVariablesInFormula :: Formula -> Set String
 freeVariablesInFormula FFalse = Set.empty
 freeVariablesInFormula FTrue = Set.empty
 freeVariablesInFormula  (Atom (R  (p ,args ) )) = Set.unions( map freeVariablesInTerm args)
@@ -26,7 +21,6 @@ freeVariablesInFormula  (Iff p q) =  freeVariablesInFormula p `Set.union` freeVa
 
 freeVariablesInFormula  (Forall x p) = Set.delete x (freeVariablesInFormula p)
 freeVariablesInFormula  (Exists x p) = Set.delete x (freeVariablesInFormula p)
-
 
 
 generalise :: Formula -> Formula
@@ -43,11 +37,9 @@ getVariant x vars = if x `elem`  vars then getVariant (x++"#") vars
                     else x 
 
 
-
-
 formulaSubstituition :: (Term -> Term) -> Formula -> Formula
-formulaSubstituition subfunc FFalse = FFalse
-formulaSubstituition subfunc FTrue = FTrue
+formulaSubstituition _ FFalse = FFalse
+formulaSubstituition _ FTrue = FTrue
 
 formulaSubstituition subfunc (Atom(R(pred, args ))) =   Atom(R(pred, map (termSubstituition subfunc) args ))
 
@@ -73,10 +65,8 @@ formulaSubstituition subfunc (Forall x formula) = quantifierSubstituition subfun
 formulaSubstituition subfunc (Exists x formula) = quantifierSubstituition subfunc (Exists x formula)
 
 
-
 varString :: Term -> String
 varString (Var x ) = x
-
 
 
 quantifierSubstituition :: (Term -> Term) -> Formula -> Formula

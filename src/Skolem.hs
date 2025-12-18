@@ -3,7 +3,8 @@ module Skolem where
 import FOL
 import qualified Data.Set as Set
 import Substitution
-import Simplification (folSimplify, nnf)
+import Simplification (folSimplify)
+import NNF
 import Prenex
 
 getFunctionsInTerm :: Term -> Set.Set String

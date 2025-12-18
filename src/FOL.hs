@@ -5,7 +5,6 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 
 
-
 data Term = Var String | Fn (String , [Term] ) deriving (Eq)
 
 data Predicate = R (String, [Term])  deriving (Eq)
@@ -15,13 +14,13 @@ data Formula = FFalse | FTrue | Atom Predicate | Not Formula
                 | Imp Formula Formula | Iff Formula Formula
                 | Forall  String Formula | Exists String Formula deriving (Eq)
 
-
 instance Show Term where
+    show :: Term -> String
     show (Var x) = x
     show (Fn(x, terms)) = x ++ show terms
 
-
 instance Show Predicate where
+    show :: Predicate -> String
     show (R(pred, terms)) = pred++ show terms
 
 instance Show Formula where
@@ -91,10 +90,6 @@ prettyPrintFormula' (Exists x p) lvl =  "∃" ++ x ++ "\n" ++ concat (replicate 
 
                                      
 
-
-
-
-
 -- Returns the valuation of a term given a valuation function and a signature
 
 termval :: (a, String -> [b] -> b, c) -> (String -> b) -> Term -> b
@@ -106,7 +101,6 @@ termval (domain, functions, predicates) v (Fn (func ,terms)) =
 
 
 -- Determines whether a formula holds given a valuation function and a signature 
-
 holds :: Foldable t => (t b, String -> [b] -> b, String -> [b] -> Bool) -> (String -> b) -> Formula -> Bool
 holds (_, _, _) _ FFalse = False
 holds (_, _, _) _ FTrue = True
@@ -146,7 +140,6 @@ holds (domain, functions, predicates) v (Exists p q) =
 
 
 makeForall :: [Char] -> Formula -> Formula
--- makeForall var formula = Forall var formula
 makeForall = Forall
 
 makeExists :: [Char] -> Formula -> Formula

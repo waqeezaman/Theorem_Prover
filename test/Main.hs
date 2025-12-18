@@ -4,6 +4,7 @@ import SubstitutionTests
 import BinaryTests
 import ModTests (runModTests)
 import SimplificationTests (runSimplificationTests)
+import NNFTests
 import PrenexTests (runPrenexTests)
 import SkolemTests
 import CNFTests
@@ -11,7 +12,8 @@ import CNFTests
 testOutputs =   runBinaryTests ++
                 runModTests ++
                 runSubstitutionTests ++ 
-                runSimplificationTests ++ 
+                runSimplificationTests ++
+                runNNFTests ++
                 runPrenexTests ++ 
                 runSkolemTests ++ 
                 runCNFTests

@@ -10,8 +10,6 @@ functions n "+"  [x,y] = mod (x+y) n
 functions n "*"  [x,y] = mod (x*y) n
 functions _ _ _ = error "Undefined Function"
 
-
-
 predicates :: String -> [Int] -> Bool
 predicates "=" [x,y] = x==y
 predicates _ _ = error "Undefined Predicate"
@@ -20,11 +18,8 @@ n = 3
 
 sigN n = ( [0..n-1], functions n, predicates   )
 
-
 sig :: ([Int], String -> [Int] -> Int, String -> [Int] -> Bool)
 sig = sigN n 
-
-
 
 formula1 = 
     Forall "X" 
@@ -34,26 +29,11 @@ formula1 =
         
             ) 
 
-
--- formula2 = Forall "X"
---                 (Imp
---                     (Not  
---                         (Atom (R ("=",  [ Fn ("0",  []) , Var "X"  ] )) )
---                     )
---                     (Exists "Y"
---                         (Atom  (R ("=",  [ Fn ("1",  [])  , Fn ("*" , [Var "X", Var "Y"])    ] ) ) )
---                     )
---                 )
-
 valuation _ = 0
 
 
 test1 = holds sig valuation formula1 == False
 
-
-
-
 runModTests =   "\n Running Mod Tests \n" ++
                 "\n Test 1: " ++ show test1 ++
                 "\n"
-

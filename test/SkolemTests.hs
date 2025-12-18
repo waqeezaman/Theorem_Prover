@@ -3,6 +3,7 @@ module SkolemTests where
 import FOL
 import Skolem
 import Simplification
+import NNF
 
 formula1 = Exists "X" (Atom((R("P", [Var "X"]))))
 skolemFormula1 = Atom((R("P", [Fn ("SK", [])])))
@@ -103,11 +104,5 @@ runSkolemTests = "\n Skolem Test Results"
     ++ "\n Test 1: " ++ show test1
     ++ "\n Test 2: " ++ show test2
     ++ "\n Test 3: " ++ show test3
-    ++ "\n" ++ prettyPrintFormula (fullSkolemise formula3)
-    ++ "\n\n" ++ prettyPrintFormula (folSimplify formula3)
-    ++ "\n\n" ++ prettyPrintFormula (nnf(folSimplify formula3))
-    ++ "\n\n" ++ prettyPrintFormula (skolemiser(nnf(folSimplify formula3)))
     ++ "\n Test 4: " ++ show test4
     ++ "\n Test 5: " ++ show test5 
-    ++ "\n\n" ++ prettyPrintFormula (fullSkolemise formula5)
-

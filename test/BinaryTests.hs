@@ -1,10 +1,7 @@
 module BinaryTests where
 
-
 import FOL
 import FOL (Formula(Forall))
-
-
 
 preds :: Eq a => String -> [a] -> Bool
 preds "=" [x,y] = x==y
@@ -35,7 +32,6 @@ formula1 = Forall "X"
         )
     ) 
 
-
 -- test to check that P = 0 OR P = 1 is TRUE
 formula2 :: Formula 
 formula2 = Forall "X"
@@ -45,19 +41,11 @@ formula2 = Forall "X"
                 Atom( R("=", [Var "X", Fn ("1", [])] ) )
             )
 
-
-
-
 test1 :: Bool
 test1 = holds sig valuation formula1 == False
 
 test2 :: Bool 
 test2 = holds sig valuation formula2 == True
-
-
-
-
-
 
 runBinaryTests =    "\n Running Binary Tests \n " ++ 
                     "\n Test 1:" ++ show test1 ++ 

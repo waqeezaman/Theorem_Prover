@@ -1,12 +1,7 @@
 module Prenex where 
 
-
-
 import FOL
 import Substitution
-
-
-
 
 prenex :: Formula -> Formula
 prenex (Forall x formula) = Forall x (prenex formula)
@@ -34,9 +29,6 @@ pullQuantifiers formula =   case formula of
                             p `Or` (Exists x q) -> pullQ False True formula makeExists makeOr x x p q
 
                             _ -> formula 
-
-
-
 
 pullQ :: Bool -> Bool -> Formula -> ([Char] -> Formula -> t) -> (Formula -> Formula -> Formula) -> [Char] -> [Char] -> Formula -> Formula -> t
 pullQ left right formula quantifier operation x y p q = 

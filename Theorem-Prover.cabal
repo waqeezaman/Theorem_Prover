@@ -35,12 +35,12 @@ license:            MIT
 license-file:       LICENSE
 
 -- The package author(s).
-author:             Waqee Zaman
+author:             Waqee Zamanu
 
 -- An email address to which users can send suggestions, bug reports, and patches.
 maintainer:         waqeezaman23@gmail.com
 
--- A copyright notice.
+-- A copyright notice.u
 -- copyright:
 category:           Math
 build-type:         Simple
@@ -62,6 +62,7 @@ library
     exposed-modules:   
         FOL,
         Simplification,
+        NNF,
         Substitution,
         Prenex,
         Skolem,
@@ -123,6 +124,7 @@ test-suite Theorem-Prover-test
         ModTests,
         BinaryTests,
         SimplificationTests,
+        NNFTests,
         PrenexTests,
         SkolemTests,
         CNFTests 

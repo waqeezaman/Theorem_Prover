@@ -52,23 +52,10 @@ sub p = p
 test1 = formulaSubstituition sub formula1 == subFormula1
 test2 = formulaSubstituition sub formula2 == subFormula2
 
-
-
-
 runSubstitutionTests =  "\n Running Substitution Tests \n" ++
                         "\n Variant Test 1: " ++ show variantTest1 ++
                         "\n Variant Test 2: " ++ show variantTest2 ++
                         "\n Variant Test 3: " ++ show variantTest3 ++
-
                         "\n\n Test 1: " ++ show test1 ++
                         "\n Test 2: " ++ show test2 ++
                         "\n"
-
-
-
-
-
-
-
-
-

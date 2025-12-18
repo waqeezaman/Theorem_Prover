@@ -3,7 +3,8 @@ module PrenexTests where
 import FOL 
 import Prenex
 import FOL (prettyPrintFormula, Formula (Not))
-import Simplification (folSimplify, nnf)
+import Simplification (folSimplify)
+import NNF
 
 p = Atom (R("pred", [Var "P"]))
 q = Atom (R("pred", [Var "Q"]))
@@ -103,7 +104,6 @@ test10 = prenex formula10 == pnfFormula10
 test11 = prenex formula11 == pnfFormula11
 
 test12 = prenex (nnf (folSimplify formula12)) == simplifiedFormula12
-
 
 
 runPrenexTests =    "\n Running Prenex Tests: " ++ 
