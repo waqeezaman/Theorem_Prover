@@ -1,4 +1,4 @@
-module Skolem where 
+module Skolem (fullSkolemise) where 
 
 import FOL
 import qualified Data.Set as Set

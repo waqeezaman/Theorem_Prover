@@ -1,4 +1,4 @@
-module NNF where 
+module NNF (nnf) where 
 
 import FOL ( Formula(Not, Imp, Iff, And, Or, Exists, Forall) )  
 

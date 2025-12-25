@@ -1,4 +1,4 @@
-module Simplification where 
+module Simplification (propTautology, propSimplify, folSimplify) where 
 
 import FOL
 import Substitution

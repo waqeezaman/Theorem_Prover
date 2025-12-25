@@ -1,13 +1,15 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module Main (main) where
 
-import SubstitutionTests
-import BinaryTests
+import Substitution.RunSubstitutionTests (runSubstitutionTests)
+import BinaryTests ( runBinaryTests )
 import ModTests (runModTests)
 import SimplificationTests (runSimplificationTests)
-import NNFTests
+import NNFTests ( runNNFTests )
 import PrenexTests (runPrenexTests)
-import SkolemTests
-import CNFTests
+import SkolemTests ( runSkolemTests )
+import CNFTests ( runCNFTests )
+import Unification.RunUnificationTests (runUnificationTests)
 
 testOutputs =   runBinaryTests ++
                 runModTests ++
@@ -16,7 +18,7 @@ testOutputs =   runBinaryTests ++
                 runNNFTests ++
                 runPrenexTests ++ 
                 runSkolemTests ++ 
-                runCNFTests
+                runCNFTests ++ 
+                runUnificationTests
 
-main :: IO ()
 main = putStrLn testOutputs

@@ -1,7 +1,8 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module CNFTests where
 
-import CNF
-import FOL
+import CNF ( toCNF )
+import FOL ( Formula(And, Atom, Not, Or), Predicate(R) )
 
 p = Atom(R("P", []))
 a = Atom(R("A", []))
@@ -41,10 +42,13 @@ test4 = cnfFormula4 == toCNF formula4
 test5 = cnfFormula5 == toCNF formula5
 
 
-runCNFTests = "\n\n CNF Tests" ++
-    "\n Test 1: " ++ show test1 ++
-    "\n Test 2: " ++ show test2 ++
-    "\n Test 3: " ++ show test3 ++
-    "\n Test 4: " ++ show test4 ++
-    "\n Test 5: " ++ show test5 
+runCNFTests = concat 
+    [
+        "\n\n CNF Tests",
+        "\n Test 1: " ++ show test1,
+        "\n Test 2: " ++ show test2,
+        "\n Test 3: " ++ show test3,
+        "\n Test 4: " ++ show test4,
+        "\n Test 5: " ++ show test5 
+    ]
 

@@ -1,0 +1,10 @@
+cradle:
+  cabal:
+    - path: "./src"
+      component: "lib:Theorem-Prover"
+
+    - path: "./app"
+      component: "exe:Theorem-Prover"
+
+    - path: "./test"
+      component: "test:Theorem-Prover-test"

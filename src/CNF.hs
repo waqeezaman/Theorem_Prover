@@ -1,6 +1,6 @@
-module CNF where
+module CNF (toCNF) where
 
-import FOL ( Formula(And, Or) )
+import FOL ( Formula(..) )
 
 -- Multiply Out function 
 -- Expands formulas by distributing variables 

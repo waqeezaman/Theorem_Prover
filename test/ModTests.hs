@@ -1,10 +1,16 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Redundant ==" #-}
+{-# HLINT ignore "Use ++" #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 module ModTests where 
 
 import FOL
+    ( Formula(Atom, Forall, Or), Predicate(R), Term(Var, Fn), holds )
  
 functions:: Int -> String -> [Int] -> Int
 
-functions n "0"  []  = 0
+functions _ "0"  []  = 0
 functions n "1"  []  = mod 1 n
 functions n "+"  [x,y] = mod (x+y) n
 functions n "*"  [x,y] = mod (x*y) n
@@ -34,6 +40,8 @@ valuation _ = 0
 
 test1 = holds sig valuation formula1 == False
 
-runModTests =   "\n Running Mod Tests \n" ++
-                "\n Test 1: " ++ show test1 ++
-                "\n"
+runModTests = concat 
+    [
+        "\n\n Running Mod Tests",
+        "\n Test 1: " ++ show test1
+    ]

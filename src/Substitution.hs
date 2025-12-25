@@ -1,14 +1,22 @@
-module Substitution where 
+module Substitution (
+    generalise,
+    termSubstituition,
+    freeVariablesInTerm, 
+    freeVariablesInFormula,
+    formulaSubstituition,
+    getVariant
+    ) where 
 
 import FOL ( Formula(..), Predicate(R), Term(..) )
 import Data.Set (Set)
 import qualified Data.Set as Set
 
-
+-- Returns a set contaning all the variables in a term 
 freeVariablesInTerm :: Term -> Set String
 freeVariablesInTerm (Var x) = Set.singleton x
 freeVariablesInTerm (Fn (_, args)) =  Set.unions (map freeVariablesInTerm args)
     
+-- Returns a set containing all the variables that occur freely in the formula
 freeVariablesInFormula :: Formula -> Set String
 freeVariablesInFormula FFalse = Set.empty
 freeVariablesInFormula FTrue = Set.empty
@@ -29,7 +37,8 @@ generalise formula =   foldr Forall formula   (Set.elems (freeVariablesInFormula
 
 termSubstituition :: (Term -> Term) -> Term -> Term
 termSubstituition subfunc (Var x) = subfunc (Var x)
-termSubstituition subfunc (Fn (func , args)) = Fn (func ,  map subfunc args  )
+-- termSubstituition subfunc (Fn (func , args)) = Fn (func ,  map subfunc args  )
+termSubstituition subfunc (Fn (func , args)) = Fn (func ,  map (termSubstituition subfunc) args  )
 
 
 getVariant :: Foldable t => String -> t String -> String
@@ -68,7 +77,17 @@ formulaSubstituition subfunc (Exists x formula) = quantifierSubstituition subfun
 varString :: Term -> String
 varString (Var x ) = x
 
-
+-- We need a different procedure for substituting into Formulas with a quantifier 
+-- This is to avoid variable capture 
+-- E.g Given 
+-- Exists X. P(X, Y)
+-- and the substitution Y -> X
+-- Naively applying this would give us 
+-- Exists X. P(X, X) , this is incorrect as Y was not previously quantified
+-- We say that the variable has been captured 
+-- To avoid this we rename quantified variables to a unique variable name 
+-- This gives us:
+--  Exists X#. P(X#, X)
 quantifierSubstituition :: (Term -> Term) -> Formula -> Formula
 
 quantifierSubstituition subfunc (Forall var pred) = 
@@ -92,3 +111,5 @@ quantifierSubstituition subfunc (Exists var pred) =
                     else  
                         subfunc     
     in Exists (varString(subfunc' (Var var) )) (formulaSubstituition subfunc' pred) 
+
+quantifierSubstituition _ f = f

@@ -1,13 +1,19 @@
-module FOL where
-import Data.List (union, delete)
+module FOL (
+    Term(..),
+    Predicate(..),
+    Formula(..), 
+    prettyPrintFormula,
+    termval,
+    holds,
+    makeForall, 
+    makeExists, 
+    makeAnd,
+    makeOr
+    ) where
 
-import Data.Set (Set)
-import qualified Data.Set as Set
+data Term = Var String | Fn (String , [Term] ) deriving (Eq, Ord)
 
-
-data Term = Var String | Fn (String , [Term] ) deriving (Eq)
-
-data Predicate = R (String, [Term])  deriving (Eq)
+newtype Predicate = R (String, [Term])  deriving (Eq)
 
 data Formula = FFalse | FTrue | Atom Predicate | Not Formula
                 | And Formula Formula | Or Formula Formula

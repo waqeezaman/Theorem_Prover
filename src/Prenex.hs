@@ -1,4 +1,4 @@
-module Prenex where 
+module Prenex (prenex) where 
 
 import FOL
 import Substitution
