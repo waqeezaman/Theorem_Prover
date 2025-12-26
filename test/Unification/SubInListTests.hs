@@ -60,7 +60,12 @@ subbedList6 =
         ),
         (
             Fn ("F", 
-                [Fn("G", [Var "Z"]), Fn("H", [Fn("G", [Var "Z"])])]), Var "X")
+                [
+                    Fn("G", [Var "Z"]),
+                    Fn("H", [Fn("G", [Var "Z"])])
+                ]
+            ),
+            Var "X")
     ]
 
 test1 = subInList (Var "X") (Fn ("G", [])) list1 == subbedList1
@@ -80,6 +85,5 @@ runSubInListTests = concat
         "\n Test 3: " ++ show test3,
         "\n Test 4: " ++ show test4,
         "\n Test 5: " ++ show test5,
-        "\n Test 6: " ++ show test6, 
-        "\n\n" ++ show (subInList (Var "Y") (Fn("G", [Var "Z"])) list6)
+        "\n Test 6: " ++ show test6
     ]

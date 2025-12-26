@@ -68,7 +68,8 @@ library
         Skolem,
         Parser,
         CNF, 
-        Unification
+        Unification, 
+        Utils
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -133,10 +134,12 @@ test-suite Theorem-Prover-test
         SkolemTests,
         CNFTests, 
         Unification.FormulaContainsVarTests,
-        Unification.UnificationTests,
         Unification.TermContainsVarTests,
         Unification.StandardiseApartTests,
         Unification.SubInListTests,
+        Unification.TermUnificationTests,
+        Unification.AtomUnificationTests,
+        Unification.UnifyTests,
         Unification.RunUnificationTests
 
 

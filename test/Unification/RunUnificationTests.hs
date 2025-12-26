@@ -4,6 +4,9 @@ import Unification.FormulaContainsVarTests (runFormulaContainsVarTests)
 import Unification.TermContainsVarTests (runTermContainsVarTests)
 import Unification.StandardiseApartTests (runStandardiseApartTests)
 import Unification.SubInListTests(runSubInListTests)
+import Unification.TermUnificationTests(runTermUnificationTests)
+import Unification.AtomUnificationTests (runAtomUnificationTests)
+import Unification.UnifyTests (runUnifyTests)
 
 runUnificationTests :: [Char]
 runUnificationTests = concat 
@@ -12,5 +15,8 @@ runUnificationTests = concat
         runFormulaContainsVarTests,
         runTermContainsVarTests,
         runStandardiseApartTests,
-        runSubInListTests
+        runSubInListTests,
+        runTermUnificationTests,
+        runAtomUnificationTests,
+        runUnifyTests
     ]
