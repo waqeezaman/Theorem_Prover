@@ -8,7 +8,8 @@ module FOL (
     makeForall, 
     makeExists, 
     makeAnd,
-    makeOr
+    makeOr,
+    Literal(..)
     ) where
 
 data Term = Var String | Fn (String , [Term] ) deriving (Eq, Ord)
@@ -19,6 +20,8 @@ data Formula = FFalse | FTrue | Atom Predicate | Not Formula
                 | And Formula Formula | Or Formula Formula
                 | Imp Formula Formula | Iff Formula Formula
                 | Forall  String Formula | Exists String Formula deriving (Eq)
+
+data Literal = Pos Predicate | Neg Predicate deriving (Eq)
 
 instance Show Term where
     show :: Term -> String

@@ -140,7 +140,10 @@ test-suite Theorem-Prover-test
         Unification.TermUnificationTests,
         Unification.AtomUnificationTests,
         Unification.UnifyTests,
-        Unification.RunUnificationTests
+        Unification.RunUnificationTests,
+        Utils.CNFToClausalFormTests,
+        Utils.DisjunctionToLiteralListTests,
+        Utils.RunUtilsTests
 
 
     -- LANGUAGE extensions used by modules in this package.

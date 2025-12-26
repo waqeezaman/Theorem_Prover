@@ -1,11 +1,12 @@
 module Skolem (fullSkolemise) where 
 
-import FOL
+import FOL ( Formula(..), Predicate(R), Term(..) )
 import qualified Data.Set as Set
 import Substitution
+    ( formulaSubstituition, freeVariablesInFormula, getVariant )
 import Simplification (folSimplify)
-import NNF
-import Prenex
+import NNF ( nnf )
+import Prenex ( prenex )
 
 getFunctionsInTerm :: Term -> Set.Set String
 getFunctionsInTerm (Var _) = Set.empty
@@ -20,9 +21,8 @@ getFunctionsInFormula (p `And` q) = getFunctionsInFormula p `Set.union` getFunct
 getFunctionsInFormula (p `Or` q) = getFunctionsInFormula p `Set.union` getFunctionsInFormula q
 getFunctionsInFormula (p `Imp` q) = getFunctionsInFormula p `Set.union` getFunctionsInFormula q
 getFunctionsInFormula (p `Iff` q) = getFunctionsInFormula p `Set.union` getFunctionsInFormula q
-getFunctionsInFormula (Forall x p) = getFunctionsInFormula p
-getFunctionsInFormula (Exists x p) = getFunctionsInFormula p 
-
+getFunctionsInFormula (Forall _ p) = getFunctionsInFormula p
+getFunctionsInFormula (Exists _ p) = getFunctionsInFormula p 
 
 
 skolem2 :: (Formula -> Formula -> Formula) -> Formula -> Formula -> [String] -> (Formula, [String])
