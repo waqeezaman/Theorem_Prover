@@ -37,7 +37,6 @@ generalise formula =   foldr Forall formula   (Set.elems (freeVariablesInFormula
 
 termSubstituition :: (Term -> Term) -> Term -> Term
 termSubstituition subfunc (Var x) = subfunc (Var x)
--- termSubstituition subfunc (Fn (func , args)) = Fn (func ,  map subfunc args  )
 termSubstituition subfunc (Fn (func , args)) = Fn (func ,  map (termSubstituition subfunc) args  )
 
 

@@ -1,7 +1,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use ++" #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
-module Unification.SubInListTests where
+module Unification.SubInListTests (runSubInListTests) where
 
 import FOL
 import Unification

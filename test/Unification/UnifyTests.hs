@@ -3,12 +3,12 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 module Unification.UnifyTests where
 import qualified Data.Map as Map
-import FOL ( Formula(Atom), Predicate(R), Term(Var, Fn) ) 
+import FOL ( Predicate(R), Term(Var, Fn) ) 
 import Unification ( unify )
 
 
-atom1 = Atom(R ("P", [Var "X", Var "Y", Fn("F", [Fn ("A", [])])]))
-atom2 = Atom(R ("P", [Var "Z", Fn("A", []), Var "Z"]))
+predicate1 = R ("P", [Var "X", Var "Y", Fn("F", [Fn ("A", [])])])
+predicate2 = R ("P", [Var "Z", Fn("A", []), Var "Z"])
 expectedSub1 = Just (Map.fromList 
     [
         (Var "X", Fn ("F", [Fn ("A", [])])),
@@ -16,16 +16,16 @@ expectedSub1 = Just (Map.fromList
         (Var "Z", Fn ("F", [Fn ("A", [])]))
     ])
 
-atom3 = Atom(R ("P", [Var "X", Fn("F", [])]))
-atom4 = Atom(R ("P", [Var "Z", Var "Z"]))
+predicate3 = R ("P", [Var "X", Fn("F", [])])
+predicate4 = R ("P", [Var "Z", Var "Z"])
 expectedSub2 = Just (Map.fromList
     [
         (Var "X", Fn("F", [])),
         (Var "Z", Fn("F", []))
     ])
 
-atom5 = Atom(R ("P", [Var "X", Fn("F", [Var "Y"]), Fn("A", [])]))
-atom6 = Atom(R ("P", [Var "Z", Var "Z", Var "Y"]))
+predicate5 = R ("P", [Var "X", Fn("F", [Var "Y"]), Fn("A", [])])
+predicate6 = R ("P", [Var "Z", Var "Z", Var "Y"])
 expectedSub3 = Just (Map.fromList
     [
         (Var "X", Fn("F", [Fn("A", [])])),
@@ -33,8 +33,8 @@ expectedSub3 = Just (Map.fromList
         (Var "Y", Fn("A", []))
     ])
 
-atom7 = Atom(R ("P", [Var "X", Fn("F", [Var "Y"]), Fn("F", [Fn("G", [Var "K"])])]))
-atom8 = Atom(R ("P", [Var "Z", Var "Z", Var "Y"]))
+predicate7 = R ("P", [Var "X", Fn("F", [Var "Y"]), Fn("F", [Fn("G", [Var "K"])])])
+predicate8 = R ("P", [Var "Z", Var "Z", Var "Y"])
 expectedSub4 = Just (Map.fromList
     [
         (Var "X", Fn("F", [Fn("F", [Fn("G", [Var "K"])])])),
@@ -43,10 +43,10 @@ expectedSub4 = Just (Map.fromList
     ])
 
 
-test1 = unify atom1 atom2 == expectedSub1
-test2 = unify atom3 atom4 == expectedSub2
-test3 = unify atom5 atom6 == expectedSub3
-test4 = unify atom7 atom8 == expectedSub4
+test1 = unify predicate1 predicate2 == expectedSub1
+test2 = unify predicate3 predicate4 == expectedSub2
+test3 = unify predicate5 predicate6 == expectedSub3
+test4 = unify predicate7 predicate8 == expectedSub4
 
 runUnifyTests = concat 
     [

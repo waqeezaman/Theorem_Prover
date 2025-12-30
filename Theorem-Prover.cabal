@@ -68,7 +68,8 @@ library
         Skolem,
         Parser,
         CNF, 
-        Unification, 
+        Unification,
+        Factoring, 
         Utils
 
     -- Modules included in this library but not exported.
@@ -138,12 +139,20 @@ test-suite Theorem-Prover-test
         Unification.StandardiseApartTests,
         Unification.SubInListTests,
         Unification.TermUnificationTests,
-        Unification.AtomUnificationTests,
+        Unification.PredicateUnificationTests,
         Unification.UnifyTests,
+        Unification.ApplySubToTermsTests,
+        Unification.ApplySubToLiteralTests,
+        Unification.ApplySubToClauseTests,
         Unification.RunUnificationTests,
         Utils.CNFToClausalFormTests,
         Utils.DisjunctionToLiteralListTests,
-        Utils.RunUtilsTests
+        Utils.RunUtilsTests,
+        Utils.RemoveFirstOccurenceFromClauseTests,
+        Factoring.SamePolarityPairsTests,
+        Factoring.ApplyFactorisationTests,
+        Factoring.FactoriseTests, 
+        Factoring.RunFactoringTests
 
 
     -- LANGUAGE extensions used by modules in this package.

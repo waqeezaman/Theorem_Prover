@@ -6,8 +6,12 @@ module Unification (
     subInList,
     standardiseApart,
     Sub,
-    unifyAtoms,
-    unify
+    unifyPredicates,
+    unify,
+    applySubToClause,
+    applySubToLiteral,
+    applySubToTerms,
+    unifyingPairs
     ) where
 
 import qualified Data.Set as Set
@@ -16,10 +20,10 @@ import qualified Data.Map as Map
 import FOL
     ( Formula(Forall, Atom, Not, And, Or, Imp, Iff, Exists),
       Predicate(R),
-      Term(..) )
+      Term(..), Literal (..) )
 import Substitution
     ( formulaSubstituition, freeVariablesInFormula, getVariant, termSubstituition )
-import Utils (transitiveClosure)
+import Utils (transitiveClosure, literalToPredicate)
 
 type Sub = Map.Map Term Term
 
@@ -101,7 +105,6 @@ unifyTerms ((a,b): rest) sub = case (a,b) of
                             subValues = Map.map (termSubstituition subFunc) sub
                             subFunc a = if a == Var x then t else a
 
-
     -- Swap Rule 
     (t, Var x) -> unifyTerms ((Var x, t): rest) sub
 
@@ -113,21 +116,57 @@ unifyTerms ((a,b): rest) sub = case (a,b) of
             then unifyTerms (zip args1 args2 ++ rest) sub
             else Nothing
 
-
-unifyAtoms :: Formula -> Formula -> Maybe Sub
-unifyAtoms (Atom (R(p, terms1))) (Atom (R(p2, terms2))) =
-    if p == p2 && length terms1 == length terms2
+unifyPredicates :: Predicate -> Predicate -> Maybe Sub
+unifyPredicates (R(p, terms1)) (R(q, terms2)) =
+    if p == q && length terms1 == length terms2
         then unifyTerms (zip terms1 terms2) Map.empty
         else Nothing
-unifyAtoms _ _ = error "unifyAtoms can only take in atoms as input"
 
-
--- Calls unifyAtoms on two atoms 
+-- Finds the most general unifier between two literals  
 -- Applies the transitive closure on the mapping that is returned 
-unify :: Formula -> Formula -> Maybe Sub
-unify (Atom (R(p, terms1))) (Atom (R(p2, terms2))) =
+unify :: Predicate -> Predicate -> Maybe Sub
+unify p q =
     case sub of
         Just mapping -> Just (transitiveClosure mapping)
         Nothing -> Nothing
-    where sub = unifyAtoms (Atom (R (p, terms1))) (Atom (R (p2, terms2)))
-unify _ _ = error "unify can only be applied to atoms"
+    where sub = unifyPredicates p q
+
+
+-- Applies a substitution to every literal in a clause 
+applySubToClause :: Sub -> [Literal] -> [Literal]
+applySubToClause _ [] = []
+applySubToClause sub ((Pos (R(p, terms))):xs) =
+        Pos (R (p, subbedTerms)) : applySubToClause sub xs
+        where subbedTerms = applySubToTerms sub terms
+
+applySubToClause sub ((Neg (R(p, terms))):xs) =
+        Neg (R (p, subbedTerms)) : applySubToClause sub xs
+        where subbedTerms = applySubToTerms sub terms
+
+
+-- Applies a substitution to every term in a list of terms 
+applySubToTerms :: Sub -> [Term] -> [Term]
+applySubToTerms _ [] = []
+applySubToTerms sub (x:xs) =
+    case x of 
+        Fn(f, terms) -> Fn(f, applySubToTerms sub terms) : applySubToTerms sub xs 
+        _ -> case mapping of 
+            Just t -> t : applySubToTerms sub xs
+            Nothing -> x : applySubToTerms sub xs
+            where mapping = Map.lookup x sub 
+
+-- Applies a substitution to a literal 
+applySubToLiteral :: Sub -> Literal -> Literal
+applySubToLiteral sub literal = case literal of
+    Pos(R(p, terms)) -> Pos (R (p, applySubToTerms sub terms))
+    Neg(R(p, terms)) -> Neg (R (p, applySubToTerms sub terms))
+
+-- Given a list of pairs of literals 
+-- Returns all pairs that unify along with the unifying substitution
+unifyingPairs :: [(Literal, Literal)] -> [(Literal,Literal, Sub)]
+unifyingPairs [] = []
+unifyingPairs ((a,b): xs) =
+    case sub of
+        Just s -> (a,b,s) : unifyingPairs xs
+        Nothing -> unifyingPairs xs
+    where sub = unify (literalToPredicate a) (literalToPredicate b)

@@ -10,6 +10,8 @@ import PrenexTests (runPrenexTests)
 import SkolemTests ( runSkolemTests )
 import CNFTests ( runCNFTests )
 import Unification.RunUnificationTests (runUnificationTests)
+import Utils.RunUtilsTests (runUtilsTests)
+import Factoring.RunFactoringTests (runFactoringTests)
 
 testOutputs =   runBinaryTests ++
                 runModTests ++
@@ -19,6 +21,8 @@ testOutputs =   runBinaryTests ++
                 runPrenexTests ++ 
                 runSkolemTests ++ 
                 runCNFTests ++ 
-                runUnificationTests
+                runUnificationTests ++ 
+                runUtilsTests ++ 
+                runFactoringTests
 
 main = putStrLn testOutputs

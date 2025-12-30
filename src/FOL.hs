@@ -14,14 +14,14 @@ module FOL (
 
 data Term = Var String | Fn (String , [Term] ) deriving (Eq, Ord)
 
-newtype Predicate = R (String, [Term])  deriving (Eq)
+newtype Predicate = R (String, [Term])  deriving (Eq, Ord)
 
 data Formula = FFalse | FTrue | Atom Predicate | Not Formula
                 | And Formula Formula | Or Formula Formula
                 | Imp Formula Formula | Iff Formula Formula
                 | Forall  String Formula | Exists String Formula deriving (Eq)
 
-data Literal = Pos Predicate | Neg Predicate deriving (Eq)
+data Literal = Pos Predicate | Neg Predicate deriving (Eq, Ord, Show)
 
 instance Show Term where
     show :: Term -> String

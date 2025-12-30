@@ -86,7 +86,7 @@ test14 = unifyTerms terms14 Map.empty == expectedSub14
 
 runTermUnificationTests = concat
     [
-        "\n\n Running Unification Tests",
+        "\n\n Running Term Unification Tests",
         "\n Test 1: " ++ show test1,
         "\n Test 2: " ++ show test2,
         "\n Test 3: " ++ show test3,
