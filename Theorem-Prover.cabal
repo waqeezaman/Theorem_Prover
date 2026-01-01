@@ -70,7 +70,10 @@ library
         CNF, 
         Unification,
         Factoring, 
-        Utils
+        Utils,
+        Resolution,
+        GivenClauseLoop,
+        Socrates
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -144,6 +147,9 @@ test-suite Theorem-Prover-test
         Unification.ApplySubToTermsTests,
         Unification.ApplySubToLiteralTests,
         Unification.ApplySubToClauseTests,
+        Unification.VariablesInClauseTests,
+        Unification.CreateStandardisingSubTests,
+        Unification.StandardiseApartClauseTests,
         Unification.RunUnificationTests,
         Utils.CNFToClausalFormTests,
         Utils.DisjunctionToLiteralListTests,
@@ -152,7 +158,9 @@ test-suite Theorem-Prover-test
         Factoring.SamePolarityPairsTests,
         Factoring.ApplyFactorisationTests,
         Factoring.FactoriseTests, 
-        Factoring.RunFactoringTests
+        Factoring.RunFactoringTests,
+        Resolution.OpposingPolarityPairsTests,
+        Resolution.RunResolutionTests
 
 
     -- LANGUAGE extensions used by modules in this package.

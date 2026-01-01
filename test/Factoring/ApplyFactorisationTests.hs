@@ -35,6 +35,5 @@ runApplyFactoringTests = concat
         "\n Test 1: " ++ show test1,
         "\n Test 2: " ++ show test2,
         "\n Test 3: " ++ show test3,
-        "\n Test 4: " ++ show test4,
-        "\n output 4: " ++ show (applyFactorisation clause3 (literal3, literal4, sub))
+        "\n Test 4: " ++ show test4
     ]

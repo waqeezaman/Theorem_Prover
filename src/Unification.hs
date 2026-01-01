@@ -11,7 +11,10 @@ module Unification (
     applySubToClause,
     applySubToLiteral,
     applySubToTerms,
-    unifyingPairs
+    unifyingPairs,
+    standardiseApartClause,
+    variablesInClause,
+    createStandardisingSub
     ) where
 
 import qualified Data.Set as Set
@@ -22,7 +25,7 @@ import FOL
       Predicate(R),
       Term(..), Literal (..) )
 import Substitution
-    ( formulaSubstituition, freeVariablesInFormula, getVariant, termSubstituition )
+    ( formulaSubstituition, freeVariablesInFormula, getVariant, termSubstituition, freeVariablesInTerm )
 import Utils (transitiveClosure, literalToPredicate)
 
 type Sub = Map.Map Term Term
@@ -44,6 +47,43 @@ formulaContainsVar var formula = case formula of
     _ -> False
     where
         eitherContains p q = formulaContainsVar var p || formulaContainsVar var q
+
+-- Returns a set of all the variables in the clause 
+variablesInClause :: [Literal] -> Set.Set String
+variablesInClause [] = Set.empty
+variablesInClause (Pos (R(_, terms)):xs) = Set.unions (map freeVariablesInTerm terms) `Set.union` variablesInClause xs
+variablesInClause (Neg (R(_, terms)):xs) = Set.unions (map freeVariablesInTerm terms) `Set.union` variablesInClause xs
+
+
+-- Standardises Apart Two Clauses
+-- This means that given two clauses a and b 
+-- a new clause b is returned such that:
+-- b shares no common variable names with a 
+standardiseApartClause :: [Literal] -> [Literal] -> [Literal]
+standardiseApartClause p q =
+    applySubToClause sub q
+    where
+        sub = createStandardisingSub common allVars Map.empty
+        pVars = variablesInClause p
+        qVars = variablesInClause q
+        allVars = Set.toList (pVars `Set.union` qVars)
+        common = Set.toList (pVars `Set.intersection` qVars)
+
+-- Given:
+-- a list of the variables present in both clauses a and b
+-- a list of variables present in either a or b 
+-- Returns a substitution such that applying this substitution to either one of the clauses 
+-- would make it such that a shares no common variables with b 
+createStandardisingSub ::  [String] -> [String] -> Sub -> Sub
+createStandardisingSub [] _ map = map
+createStandardisingSub (x:xs) allVars map =
+    createStandardisingSub xs newAllVars newMap
+    where
+        newAllVars = allVars ++ [unique]
+        newMap = Map.insert (Var x) (Var unique) map
+        unique = getVariant x allVars
+
+
 
 -- Function to standardise apart two formulas 
 -- If these two formulas share any variable names then 
@@ -148,12 +188,12 @@ applySubToClause sub ((Neg (R(p, terms))):xs) =
 applySubToTerms :: Sub -> [Term] -> [Term]
 applySubToTerms _ [] = []
 applySubToTerms sub (x:xs) =
-    case x of 
-        Fn(f, terms) -> Fn(f, applySubToTerms sub terms) : applySubToTerms sub xs 
-        _ -> case mapping of 
+    case x of
+        Fn(f, terms) -> Fn (f, applySubToTerms sub terms) : applySubToTerms sub xs
+        _ -> case mapping of
             Just t -> t : applySubToTerms sub xs
             Nothing -> x : applySubToTerms sub xs
-            where mapping = Map.lookup x sub 
+            where mapping = Map.lookup x sub
 
 -- Applies a substitution to a literal 
 applySubToLiteral :: Sub -> Literal -> Literal

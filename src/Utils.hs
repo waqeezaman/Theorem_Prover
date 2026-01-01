@@ -12,7 +12,8 @@ module Utils (
     literalToPredicate,
     removeFirstOccurenceFromClause,
     uniquePairs,
-    makeSetOfSets
+    makeSetOfSets,
+    uniquePairsBetweenLists
     ) where
 
 import qualified Data.Map as Map
@@ -77,6 +78,10 @@ removeFirstOccurenceFromClause' prefix (x:xs) l =
 uniquePairs :: [a] -> [(a, a)]
 uniquePairs [] = []
 uniquePairs (x:xs) = [(x, y) | y <- xs] ++ uniquePairs xs
+
+uniquePairsBetweenLists :: [a] -> [b] -> [(a,b)]
+uniquePairsBetweenLists [] _ = []
+uniquePairsBetweenLists (x:xs) ys = [(x,y) | y <- ys] ++ uniquePairsBetweenLists xs ys
 
 
 makeSetOfSets :: Ord a => [[a]] -> Set.Set (Set.Set a)

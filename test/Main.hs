@@ -12,6 +12,7 @@ import CNFTests ( runCNFTests )
 import Unification.RunUnificationTests (runUnificationTests)
 import Utils.RunUtilsTests (runUtilsTests)
 import Factoring.RunFactoringTests (runFactoringTests)
+import Resolution.RunResolutionTests (runResolutionTests)
 
 testOutputs =   runBinaryTests ++
                 runModTests ++
@@ -23,6 +24,7 @@ testOutputs =   runBinaryTests ++
                 runCNFTests ++ 
                 runUnificationTests ++ 
                 runUtilsTests ++ 
-                runFactoringTests
+                runFactoringTests ++ 
+                runResolutionTests
 
 main = putStrLn testOutputs

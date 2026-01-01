@@ -6,12 +6,14 @@ import Unification.TermContainsVarTests (runTermContainsVarTests)
 import Unification.StandardiseApartTests (runStandardiseApartTests)
 import Unification.SubInListTests(runSubInListTests)
 import Unification.TermUnificationTests(runTermUnificationTests)
-import Unification.PredicateUnificationTests
-    ( runPredicateUnificationTests )
+import Unification.PredicateUnificationTests(runPredicateUnificationTests)
 import Unification.UnifyTests (runUnifyTests)
 import Unification.ApplySubToTermsTests (runApplySubToTermsTests)
 import Unification.ApplySubToLiteralTests (runApplySubToLiteralTests)
 import Unification.ApplySubToClauseTests (runApplySubToClauseTests)
+import Unification.VariablesInClauseTests (runVariablesInClauseTests)
+import Unification.CreateStandardisingSubTests (runCreateStandardisingSubTests)
+import Unification.StandardiseApartClauseTests (runStandardiseApartClauseTests)
 
 runUnificationTests = concat 
     [
@@ -25,5 +27,8 @@ runUnificationTests = concat
         runUnifyTests,
         runApplySubToTermsTests,
         runApplySubToLiteralTests,
-        runApplySubToClauseTests
+        runApplySubToClauseTests,
+        runVariablesInClauseTests,
+        runCreateStandardisingSubTests,
+        runStandardiseApartClauseTests
     ]
