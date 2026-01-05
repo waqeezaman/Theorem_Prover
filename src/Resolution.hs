@@ -16,14 +16,16 @@ resolve clause1 clause2 =
     map (applyResolution clause1 clause2) pairs  
     where pairs = unifyingPairs (opposingPolarityPairs (uniquePairsBetweenLists clause1 clause2))
 
+
 -- Applies the resolution step to two clauses 
 -- Given a substitution that unifies them, and the two literals that will be cancelled out 
 applyResolution :: [Literal] -> [Literal] -> (Literal,Literal, Sub) -> [Literal]
 applyResolution clause1 clause2 (literal1, literal2, sub) = 
         resolvedClause
     where 
-        resolvedClause = [literal | literal <- joinedClause , literal /= subbedLiteral1 && literal /= subbedLiteral2 ]
-        joinedClause = subbedClause1 ++ subbedClause2 
+        resolvedClause = reducedSubbedClause1 ++ reducedSubbedClause2 
+        reducedSubbedClause2 = [literal | literal <- subbedClause2, literal /= subbedLiteral2] 
+        reducedSubbedClause1 = [literal | literal <- subbedClause1, literal /= subbedLiteral1] 
         subbedClause1 = applySubToClause sub clause1 
         subbedClause2 = applySubToClause sub clause2 
         subbedLiteral1 = applySubToLiteral sub literal1 
