@@ -83,6 +83,7 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:    
+        megaparsec ^>=9.7.0,
         base ^>=4.17.2.1,
         containers >= 0.6 && < 0.8
 
@@ -100,7 +101,16 @@ executable Theorem-Prover
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:    FOL, Simplification
+    other-modules:   
+                    FOL,
+                    Factoring,
+                    GivenClauseLoop,
+                    Resolution,
+                    Socrates,
+                    Substitution,
+                    Unification,
+                    Utils,
+                    Parser
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -109,6 +119,7 @@ executable Theorem-Prover
     build-depends:
         base ^>=4.17.2.1,
         containers >= 0.6 && < 0.8,
+        megaparsec  ^>=9.7.0,
         Theorem-Prover
 
     -- Directories containing source files.
@@ -160,7 +171,8 @@ test-suite Theorem-Prover-test
         Factoring.FactoriseTests, 
         Factoring.RunFactoringTests,
         Resolution.OpposingPolarityPairsTests,
-        Resolution.RunResolutionTests
+        Resolution.RunResolutionTests,
+        Mytest
 
 
     -- LANGUAGE extensions used by modules in this package.

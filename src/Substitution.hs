@@ -75,6 +75,7 @@ formulaSubstituition subfunc (Exists x formula) = quantifierSubstituition subfun
 
 varString :: Term -> String
 varString (Var x ) = x
+varString _ = error "Attempting to get the variable string of a function term"
 
 -- We need a different procedure for substituting into Formulas with a quantifier 
 -- This is to avoid variable capture 
