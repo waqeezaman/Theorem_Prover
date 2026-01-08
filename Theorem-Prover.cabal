@@ -46,7 +46,7 @@ category:           Math
 build-type:         Simple
 
 -- Extra doc files to be distributed with the package, such as a CHANGELOG or a README.
-extra-doc-files:    CHANGELOG.md
+extra-doc-files: 
 
 -- Extra source files to be distributed with the package, such as examples, or a tutorial module.
 -- extra-source-files:
@@ -85,7 +85,9 @@ library
     build-depends:    
         megaparsec ^>=9.7.0,
         base ^>=4.17.2.1,
-        containers >= 0.6 && < 0.8
+        containers >= 0.6 && < 0.8,
+        aeson,
+        bytestring
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -120,6 +122,9 @@ executable Theorem-Prover
         base ^>=4.17.2.1,
         containers >= 0.6 && < 0.8,
         megaparsec  ^>=9.7.0,
+        aeson,
+        aeson-pretty,
+        bytestring,
         Theorem-Prover
 
     -- Directories containing source files.
@@ -171,8 +176,7 @@ test-suite Theorem-Prover-test
         Factoring.FactoriseTests, 
         Factoring.RunFactoringTests,
         Resolution.OpposingPolarityPairsTests,
-        Resolution.RunResolutionTests,
-        Mytest
+        Resolution.RunResolutionTests
 
 
     -- LANGUAGE extensions used by modules in this package.

@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# OPTIONS_GHC -Wno-deriving-defaults #-}
 module FOL (
     Term(..),
     Predicate(..),
@@ -9,19 +12,24 @@ module FOL (
     makeExists, 
     makeAnd,
     makeOr,
-    Literal(..)
+    Literal(..),
+    Clause(..),
+    getLiterals
     ) where
+import Data.Aeson (ToJSON)
+import GHC.Generics (Generic)
 
-data Term = Var String | Fn (String , [Term] ) deriving (Eq, Ord)
+data Term = Var String | Fn (String , [Term] ) deriving (Eq, Ord, Generic, ToJSON)
 
-newtype Predicate = R (String, [Term])  deriving (Eq, Ord)
+newtype Predicate = R (String, [Term])  deriving (Eq, Ord, Generic, ToJSON)
 
 data Formula = FFalse | FTrue | Atom Predicate | Not Formula
                 | And Formula Formula | Or Formula Formula
                 | Imp Formula Formula | Iff Formula Formula
                 | Forall  String Formula | Exists String Formula deriving (Eq)
 
-data Literal = Pos Predicate | Neg Predicate deriving (Eq, Ord, Show)
+data Literal = Pos Predicate | Neg Predicate deriving (Eq, Ord, Show, Generic, ToJSON)
+newtype Clause = Clause [Literal] deriving (Show,  Generic, ToJSON)
 
 instance Show Term where
     show :: Term -> String
@@ -159,3 +167,6 @@ makeAnd = And
 
 makeOr :: Formula -> Formula -> Formula
 makeOr = Or
+
+getLiterals :: Clause -> [Literal]
+getLiterals (Clause literals) = literals
