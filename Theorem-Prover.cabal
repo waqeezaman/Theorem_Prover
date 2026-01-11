@@ -169,11 +169,14 @@ test-suite Theorem-Prover-test
         Utils.DisjunctionToLiteralListTests,
         Utils.RunUtilsTests,
         Utils.RemoveFirstOccurenceFromClauseTests,
+        Utils.IsTautologyTests,
         Factoring.SamePolarityPairsTests,
         Factoring.ApplyFactorisationTests,
         Factoring.FactoriseTests, 
         Factoring.RunFactoringTests,
         Resolution.OpposingPolarityPairsTests,
+        Resolution.ApplyResolutionTests,
+        Resolution.ResolveTests,
         Resolution.RunResolutionTests
 
 
