@@ -9,18 +9,21 @@
 
 module GivenClauseLoop where
 
+import Data.Maybe ( isJust ) 
 import Data.Aeson ( object, KeyValue((.=)), ToJSON(toJSON) )
+import qualified Data.PQueue.Prio.Min as PQ
+import Data.List ( foldl', sortOn )
+
 import FOL ( Clause (Clause), getLiterals, Literal)
 import Unification (standardiseApartClause)
 import Resolution (resolve)
 import Factoring (factorise)
-import Data.List (sortOn)
 import GHC.Generics (Generic)
-import Control.Monad.State
+import Control.Monad.State ( MonadState(put, get), State )
 import Prelude hiding (id)
-import qualified Data.Maybe
 import Utils (isTautology)
 
+type PassiveSetPriorityQueue = PQ.MinPQueue Int Clause
 
 type ProofSearchState = State Int
 
@@ -48,40 +51,38 @@ data DerivedClause =
     deriving (Show, Generic)
 
 instance ToJSON DerivedClause where
-    toJSON (Axiom c cid) = object 
+    toJSON (Axiom c cid) = object
         [ "id"     .= cid,
         "clause" .= c,
         "type" .= ("Axiom" :: String)
         ]
-    toJSON (Derived d p1 p2 s cid) = object 
-        [ 
+    toJSON (Derived d p1 p2 s cid) = object
+        [
             "id" .= cid,
-            "clause" .= d, 
+            "clause" .= d,
             "type" .= s,
             "parent1" .= p1.clauseId,
             "parent2" .= p2.clauseId
         ]
-
-
-
 
 -- Given a list of list of literals as clauses 
 -- Returns a list of axioms to be used as input to the solver
 createAxioms :: [[Literal]] -> [DerivedClause]
 createAxioms litsList =
     zipWith (\ lits i -> Axiom {derived = Clause lits, clauseId = i}) litsList [1..]
--- createAxioms :: [[Literal]] -> ProofSearchState [DerivedClause]
--- createAxioms = mapM createSingleAxiom
---   where
---     createSingleAxiom lits = do
---         newId <- getNextId
---         return (Axiom {axiom = Clause lits, id = newId})
 
 -- Solves whether a set of clauses is unsatisfiable 
 -- If the set is Unsatisfiable then True is returned 
 -- If the set if Satisfiable then False is returned 
 solve :: [Clause] -> Bool
 solve initialClauses = givenClauseLoop initialClauses []
+
+solvePQ :: [Clause] -> Bool
+solvePQ initialClauses = givenClauseLoopPQ (PQ.fromList (map getPriority initialClauses)) []
+
+getPriority :: Clause -> (Int, Clause)
+getPriority clause = (length $ getLiterals  clause, clause)
+
 
 -- Takes a passive set and an active set and iterates through the 
 -- passive set, at each step it derives all possible inferences 
@@ -91,14 +92,36 @@ solve initialClauses = givenClauseLoop initialClauses []
 -- If we derive the empty clause then the set of clauses is unsatisfiable   
 givenClauseLoop :: [Clause] -> [Clause] -> Bool
 givenClauseLoop [] _ = False
+givenClauseLoop (Clause []:_) _ = True
 givenClauseLoop (Clause x:xs) actives =
-    x == [] || givenClauseLoop sortedPassives newActives
-            where
-                resolved = concatMap (resolution (Clause x)) actives
-                factored = map Clause (factorise x)
-                newPassives = xs ++ resolved ++ factored
-                sortedPassives = sortOn (length . getLiterals) newPassives
-                newActives = Clause x : actives
+    unsat || givenClauseLoop sortedPassives newActives
+        where
+            resolved = concatMap (resolution (Clause x)) actives
+            factored = map Clause (factorise x)
+            derivedClauses = filter (not . isTautology) (factored ++ resolved)
+            newPassives = xs ++ derivedClauses
+            sortedPassives = sortOn (length . getLiterals) newPassives
+            newActives = Clause x : actives
+            unsat = Clause [] `elem` derivedClauses
+
+
+-- This implementation of the given clause loop 
+-- Uses a prioirty queue to handle the passive set 
+-- Orders the priority queue by weight 
+givenClauseLoopPQ :: PassiveSetPriorityQueue -> [Clause] -> Bool
+givenClauseLoopPQ passives actives = case PQ.minView passives of
+    Nothing -> False
+    Just (Clause [], _) -> True
+    Just (currentClause, restPassives) ->
+        unsat || givenClauseLoopPQ updatedPassives newActives
+        where
+            resolved = concatMap (resolution currentClause) actives
+            factored = map Clause (factorise (getLiterals currentClause))
+            derivedClauses  = filter (not . isTautology) (factored ++ resolved)
+            updatedPassives = foldl' (\pq c -> PQ.insert (length (getLiterals c)) c pq) restPassives derivedClauses
+            newActives = currentClause : actives
+            unsat = Clause [] `elem` derivedClauses
+
 
 -- Runs a proof search for N Steps 
 -- Returns the passive and active sets created 
@@ -110,11 +133,12 @@ proofSearchAfterNSteps n (selected: passives) actives =
     do
         factored <- factorisingWithDerivedClause selected
         resolved <- concat <$> mapM (resolutionWithDerivedClauses selected) actives
-        let newPassives = passives ++ factored ++ resolved
-        let newActives = selected : actives
+        let derivedClauses = filter (not . isTautology . derived) (factored ++ resolved)
+        let newPassives = passives ++ derivedClauses
         let sortedPassives = sortOn (length . getLiterals . derived) newPassives
-        let unsat = derivedFalse sortedPassives
-        if unsat then return Search {isUnsat = Just True, actives = selected : newActives, passives = newPassives}
+        let newActives = selected : actives
+        let unsat = derivedFalse derivedClauses
+        if unsat then return Search {isUnsat = Just True, actives = selected : newActives, passives = sortedPassives}
         else proofSearchAfterNSteps (n-1) sortedPassives newActives
 
 -- Solves a problem and returns the passive and active sets created during the proof search as well as the result 
@@ -129,11 +153,12 @@ solveWithProofSearch (selected : passives) actives =
             do
                 factored <- factorisingWithDerivedClause selected
                 resolved <- concat <$> mapM (resolutionWithDerivedClauses selected) actives
-                let newPassives = passives ++ factored ++ resolved
-                let newActives = selected : actives
+                let derivedClauses = filter (not . isTautology . derived) (factored ++ resolved)
+                let newPassives = passives ++ derivedClauses
                 let sortedPassives = sortOn (length . getLiterals . derived) newPassives
-                let unsat = derivedFalse sortedPassives
-                if unsat then return Search {isUnsat = Just True, actives = selected : newActives, passives = newPassives}
+                let newActives = selected : actives
+                let unsat = derivedFalse derivedClauses
+                if unsat then return Search {isUnsat = Just True, actives = selected : newActives, passives = sortedPassives}
                 else solveWithProofSearch sortedPassives newActives
 
 
@@ -145,12 +170,12 @@ solveWithProof (selected: passives) actives =
     do
         factored <- factorisingWithDerivedClause selected
         resolved <- concat <$> mapM (resolutionWithDerivedClauses selected) actives
-        let newPassives = passives ++ factored ++ resolved
-        let filteredPassives = filter (not . isTautology . derived) newPassives
+        let derivedClauses = filter (not . isTautology . derived) (factored ++ resolved)
+        let newPassives = passives ++ derivedClauses
+        let sortedPassives = sortOn (length . getLiterals . derived) newPassives
         let newActives = selected : actives
-        let sortedPassives = sortOn (length . getLiterals . derived) filteredPassives
-        let unsat = derivedFalseClause sortedPassives
-        if Data.Maybe.isJust unsat then return unsat
+        let unsat = derivedFalseClause derivedClauses
+        if isJust unsat then return unsat
         else solveWithProof sortedPassives newActives
 
 
@@ -162,8 +187,6 @@ derivedFalseClause :: [DerivedClause] -> Maybe DerivedClause
 derivedFalseClause [] = Nothing
 derivedFalseClause (x:xs) = if x.derived == Clause [] then Just x
                             else derivedFalseClause xs
-
-
 
 
 -- Performs resolution with derived clause type 
