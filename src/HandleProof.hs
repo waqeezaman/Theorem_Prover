@@ -1,7 +1,11 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 
+
 module HandleProof where
-import GivenClauseLoop (DerivedClause (..))
+import qualified Data.ByteString.Lazy as B
+import Data.Aeson.Encode.Pretty (encodePretty)
+
+import GivenClauseLoop (DerivedClause (..), ProofSearch)
 import Data.List (nubBy, sortOn)
 import Prelude hiding (id)
 
@@ -33,3 +37,9 @@ writeProofToFile path (Just goal) = do
     let proofString = unlines (map formatStep proofSteps)
     writeFile path proofString
     putStrLn $ "Proof written to " ++ path
+
+writeSearchToFile :: FilePath -> ProofSearch -> IO ()
+writeSearchToFile path searchState = do
+    let jsonData = encodePretty searchState
+    B.writeFile path jsonData
+    putStrLn $ "Search state written to " ++ path

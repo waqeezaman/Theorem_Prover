@@ -5,8 +5,11 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module GivenClauseLoop where
-import Data.Aeson (ToJSON)
+
+import Data.Aeson ( object, KeyValue((.=)), ToJSON(toJSON) )
 import FOL ( Clause (Clause), getLiterals, Literal)
 import Unification (standardiseApartClause)
 import Resolution (resolve)
@@ -16,6 +19,8 @@ import GHC.Generics (Generic)
 import Control.Monad.State
 import Prelude hiding (id)
 import qualified Data.Maybe
+import Utils (isTautology)
+
 
 type ProofSearchState = State Int
 
@@ -40,7 +45,23 @@ data DerivedClause =
         clauseId :: Int
         }
     | Axiom {derived :: Clause, clauseId:: Int}
-    deriving (Show, Generic, ToJSON)
+    deriving (Show, Generic)
+
+instance ToJSON DerivedClause where
+    toJSON (Axiom c cid) = object 
+        [ "id"     .= cid,
+        "clause" .= c,
+        "type" .= ("Axiom" :: String)
+        ]
+    toJSON (Derived d p1 p2 s cid) = object 
+        [ 
+            "id" .= cid,
+            "clause" .= d, 
+            "type" .= s,
+            "parent1" .= p1.clauseId,
+            "parent2" .= p2.clauseId
+        ]
+
 
 
 
@@ -125,8 +146,9 @@ solveWithProof (selected: passives) actives =
         factored <- factorisingWithDerivedClause selected
         resolved <- concat <$> mapM (resolutionWithDerivedClauses selected) actives
         let newPassives = passives ++ factored ++ resolved
+        let filteredPassives = filter (not . isTautology . derived) newPassives
         let newActives = selected : actives
-        let sortedPassives = sortOn (length . getLiterals . derived) newPassives
+        let sortedPassives = sortOn (length . getLiterals . derived) filteredPassives
         let unsat = derivedFalseClause sortedPassives
         if Data.Maybe.isJust unsat then return unsat
         else solveWithProof sortedPassives newActives
@@ -140,6 +162,8 @@ derivedFalseClause :: [DerivedClause] -> Maybe DerivedClause
 derivedFalseClause [] = Nothing
 derivedFalseClause (x:xs) = if x.derived == Clause [] then Just x
                             else derivedFalseClause xs
+
+
 
 
 -- Performs resolution with derived clause type 

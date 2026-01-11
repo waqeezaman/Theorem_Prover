@@ -17,8 +17,9 @@ module FOL (
     Clause(..),
     getLiterals
     ) where
-import Data.Aeson (ToJSON)
+import Data.Aeson (ToJSON (toJSON), Value (String))
 import GHC.Generics (Generic)
+import Data.Text (pack)
 
 data Term = Var String | Fn (String , [Term] ) deriving (Eq, Ord, Generic, ToJSON)
 
@@ -30,7 +31,11 @@ data Formula = FFalse | FTrue | Atom Predicate | Not Formula
                 | Forall  String Formula | Exists String Formula deriving (Eq)
 
 data Literal = Pos Predicate | Neg Predicate deriving (Eq, Ord, Show, Generic, ToJSON)
-newtype Clause = Clause [Literal] deriving (Show, Eq, Generic, ToJSON)
+newtype Clause = Clause [Literal] deriving (Show, Eq, Generic)
+
+instance ToJSON Clause where
+    toJSON :: Clause -> Value
+    toJSON c = String (pack (show c))
 
 instance Show Term where
     show :: Term -> String

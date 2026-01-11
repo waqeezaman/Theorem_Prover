@@ -90,6 +90,7 @@ library
         aeson,
         aeson-pretty,
         bytestring,
+        text,
         mtl
 
     -- Directories containing source files.
@@ -120,6 +121,8 @@ executable Theorem-Prover
         aeson-pretty,
         bytestring,
         mtl,
+        optparse-applicative,
+        text,
         Theorem-Prover
 
     -- Directories containing source files.

@@ -13,12 +13,13 @@ module Utils (
     removeFirstOccurenceFromClause,
     uniquePairs,
     makeSetOfSets,
-    uniquePairsBetweenLists
+    uniquePairsBetweenLists,
+    isTautology
     ) where
 
 import qualified Data.Map as Map
 import FOL
-    ( Literal(..), Formula(Atom, And, Or, Not), Predicate(R) )
+    ( Literal(..), Formula(Atom, And, Or, Not), Predicate(R), Clause (..) )
 import qualified Data.Set as Set
 
 
@@ -86,3 +87,11 @@ uniquePairsBetweenLists (x:xs) ys = [(x,y) | y <- ys] ++ uniquePairsBetweenLists
 
 makeSetOfSets :: Ord a => [[a]] -> Set.Set (Set.Set a)
 makeSetOfSets list = Set.fromList (map Set.fromList list)
+
+isTautology :: Clause -> Bool
+isTautology (Clause lits) = 
+    let (posAtoms, negAtoms) = foldr split (Set.empty, Set.empty) lits
+    in not $ Set.disjoint posAtoms negAtoms
+  where
+    split (Pos a) (ps, ns) = (Set.insert a ps, ns)
+    split (Neg a) (ps, ns) = (ps, Set.insert a ns)
