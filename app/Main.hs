@@ -6,17 +6,14 @@ module Main where
 
 import Options.Applicative
 import Parser (parseTPTP)
-import GivenClauseLoop
-    ( createAxioms,
-      solve,
-      solveWithProofSearch,
-      solveWithProof,
-      proofSearchAfterNSteps )
 import Text.Megaparsec (errorBundlePretty)
 import FOL
-import HandleProof (writeProofToFile)
+import HandleProof ( writeProofToFile, writeSearchToFile )
 import Control.Monad.State (evalState)
-import HandleProof (writeSearchToFile)
+import GivenClauseLoop.Solvers (solvePQ, solve)
+import GivenClauseLoop.ProofSearch ( solveWithProof, proofSearchAfterNSteps, solveWithProofSearch )
+import GivenClauseLoop.Helpers (createAxioms)
+-- import GivenClauseLoop (createAxioms)
 
 data ProverMode = WriteProof | NSteps | ProofSearch | Solver
 
@@ -30,7 +27,7 @@ data Options = Options
 
 modeParser :: Parser ProverMode
 modeParser = subparser
-    (  command "write" (info (pure WriteProof) (progDesc "Solve and write proof to file"))
+    (  command "proof" (info (pure WriteProof) (progDesc "Solve and write proof to file"))
     <> command "nsteps" (info (pure NSteps) (progDesc "Run for N steps and print result"))
     <> command "search" (info (pure ProofSearch) (progDesc "Full proof search state printout"))
     <> command "solve"  (info (pure Solver) (progDesc "Standard solver (True/False only)"))
@@ -51,10 +48,10 @@ main = do
     let m = info (optionsParser <**> helper)
             (  fullDesc
             <> progDesc "A First Order Logic Resolution Prover"
-            <> header "Theorem-Prover v1.0 - Academic Logic Tool"
+            <> header "Theorem-Prover"
             <> footer "Example: Theorem-Prover PUZ001-1.p solve --verbose"
-            )    
-    opts <- customExecParser p m 
+            )
+    opts <- customExecParser p m
     runWithOptions opts
 
 

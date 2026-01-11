@@ -72,9 +72,13 @@ library
         Factoring, 
         Utils,
         Resolution,
-        GivenClauseLoop,
         HandleProof,
-        Socrates
+        Socrates,
+        GivenClauseLoop.Helpers,
+        GivenClauseLoop.ProofSearch,
+        GivenClauseLoop.RatioSolver,
+        GivenClauseLoop.Solvers,
+        GivenClauseLoop.Types
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -91,6 +95,7 @@ library
         aeson-pretty,
         bytestring,
         text,
+        pqueue,
         mtl
 
     -- Directories containing source files.
@@ -123,6 +128,7 @@ executable Theorem-Prover
         mtl,
         optparse-applicative,
         text,
+        pqueue,
         Theorem-Prover
 
     -- Directories containing source files.

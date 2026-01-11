@@ -1,13 +1,12 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 
-
 module HandleProof where
+
+import Data.List (nubBy, sortOn)
 import qualified Data.ByteString.Lazy as B
 import Data.Aeson.Encode.Pretty (encodePretty)
 
-import GivenClauseLoop (DerivedClause (..), ProofSearch)
-import Data.List (nubBy, sortOn)
-import Prelude hiding (id)
+import GivenClauseLoop.Types (DerivedClause (..), ProofSearch)
 
 formatStep :: DerivedClause -> String
 formatStep (Axiom c cid) =
