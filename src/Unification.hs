@@ -50,9 +50,11 @@ formulaContainsVar var formula = case formula of
 
 -- Returns a set of all the variables in the clause 
 variablesInClause :: [Literal] -> Set.Set String
-variablesInClause [] = Set.empty
-variablesInClause (Pos (R(_, terms)):xs) = Set.unions (map freeVariablesInTerm terms) `Set.union` variablesInClause xs
-variablesInClause (Neg (R(_, terms)):xs) = Set.unions (map freeVariablesInTerm terms) `Set.union` variablesInClause xs
+variablesInClause clause = case clause of
+    [] -> Set.empty
+    (Pos (R(_, terms)):xs) -> Set.unions (map freeVariablesInTerm terms) `Set.union` variablesInClause xs
+    (Neg (R(_, terms)):xs) -> Set.unions (map freeVariablesInTerm terms) `Set.union` variablesInClause xs
+
 
 
 -- Standardises Apart Two Clauses
@@ -68,6 +70,7 @@ standardiseApartClause p q =
         qVars = variablesInClause q
         allVars = Set.toList (pVars `Set.union` qVars)
         common = Set.toList (pVars `Set.intersection` qVars)
+
 
 -- Given:
 -- a list of the variables present in both clauses a and b

@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# OPTIONS_GHC -Wno-deriving-defaults #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 module FOL (
     Term(..),
     Predicate(..),
@@ -29,7 +30,7 @@ data Formula = FFalse | FTrue | Atom Predicate | Not Formula
                 | Forall  String Formula | Exists String Formula deriving (Eq)
 
 data Literal = Pos Predicate | Neg Predicate deriving (Eq, Ord, Show, Generic, ToJSON)
-newtype Clause = Clause [Literal] deriving (Show,  Generic, ToJSON)
+newtype Clause = Clause [Literal] deriving (Show, Eq, Generic, ToJSON)
 
 instance Show Term where
     show :: Term -> String
@@ -38,7 +39,7 @@ instance Show Term where
 
 instance Show Predicate where
     show :: Predicate -> String
-    show (R(pred, terms)) = pred++ show terms
+    show (R(pred, terms)) = pred ++ show terms
 
 instance Show Formula where
     show FFalse = "⊥"
@@ -144,15 +145,11 @@ holds (domain, functions, predicates) v (Iff p q) =
     holds (domain, functions, predicates) v q
 
 holds (domain, functions, predicates) v (Forall p q) =
-   all  (\a -> let x = a in  holds (domain, functions, predicates )
-                            (\x -> if x == p then a else v x) q
-        )
+   all  (\a -> holds (domain, functions, predicates ) (\x -> if x == p then a else v x) q)
    domain
 
 holds (domain, functions, predicates) v (Exists p q) =
-   any  (\a -> let x = a in  holds (domain, functions, predicates )
-                            (\x -> if x == p then a else v x) q
-        )
+   any  (\a -> holds (domain, functions, predicates ) (\x -> if x == p then a else v x) q)
    domain
 
 

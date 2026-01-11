@@ -5,22 +5,18 @@
 module Main where
 
 import System.Environment (getArgs)
-import qualified Data.ByteString.Lazy.Char8 as ByteString
-import Data.Aeson.Encode.Pretty (encodePretty)
 import Parser (parseTPTP)
-import GivenClauseLoop (solve, findDerivedClausesForNSteps, findAllDerivedClauses, proofSearchAfterNSteps, resolution, DerivedClause(..), solveWithResult, ProofResult (isUnsat))
+import GivenClauseLoop
 import Text.Megaparsec (errorBundlePretty)
 import FOL
-import Unification (standardiseApartClause, unifyingPairs, applySubToClause, applySubToLiteral)
-import Resolution
-import Utils
-import Data.List (sortOn)
-import Factoring (factorise)
+import HandleProof (writeProofToFile)
+import Control.Monad.State (evalState)
 
 main = do
     args <- getArgs
     case args of
-        [inputFile] -> runProver inputFile
+        [inputFile] -> runForNSteps inputFile
+        [inputFile, outputFile] -> writeProof inputFile outputFile
         _ -> do
             putStrLn "Usage: cabal run Theorem-Prover -- <input.p>"
 
@@ -35,18 +31,43 @@ runProver inputFile = do
             putStrLn (errorBundlePretty err)
 
         Right clauses -> do
-            -- let initialPassives = map (\c -> Derived { derived = Clause c, parent1 = Clause [], parent2 = Clause []}) clauses
-            let result = solve clauses --solveWithResult initialPassives []
-            -- let result = solveWithResult initialPassives []
-
-            -- let proof = proofSearchAfterNSteps (map (\c -> (c, [], [])) clauses) [] 2
-
+            let result = solve (map Clause clauses) 
             print result
-            -- mapM_ print proof
-            -- print (isUnsat result)
-            -- let jsonOutput = encodePretty result
-
-            -- ByteString.writeFile outputFile jsonOutput
-            -- putStrLn $ "Proof result saved to: " ++ outputFile
 
 
+writeProof inputFile outputFile = do
+    input <- readFile inputFile
+    case parseTPTP input of
+        Left err -> do
+            putStrLn "Parser Error:"
+            putStrLn (errorBundlePretty err)
+
+        Right clauses -> do
+            let axioms = createAxioms clauses
+            let result = evalState (solveWithProof axioms []) (length axioms+1)
+            writeProofToFile outputFile result
+
+
+runForNSteps inputFile = do 
+    input <- readFile inputFile
+    case parseTPTP input of
+        Left err -> do
+            putStrLn "Parser Error:"
+            putStrLn (errorBundlePretty err)
+
+        Right clauses -> do
+            let axioms = createAxioms clauses
+            let result = evalState (proofSearchAfterNSteps 3000 axioms [] ) (length axioms+1)
+            print result
+        
+runAndPrintProofSearch inputFile = do 
+    input <- readFile inputFile
+    case parseTPTP input of
+        Left err -> do
+            putStrLn "Parser Error:"
+            putStrLn (errorBundlePretty err)
+
+        Right clauses -> do
+            let axioms = createAxioms clauses
+            let result = evalState (solveWithProofSearch axioms [] ) (length axioms+1)
+            print result   

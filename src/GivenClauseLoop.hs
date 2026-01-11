@@ -4,22 +4,62 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 module GivenClauseLoop where
 import Data.Aeson (ToJSON)
-import FOL ( Literal, Clause (Clause), getLiterals)
+import FOL ( Clause (Clause), getLiterals, Literal)
 import Unification (standardiseApartClause)
 import Resolution (resolve)
 import Factoring (factorise)
 import Data.List (sortOn)
 import GHC.Generics (Generic)
+import Control.Monad.State
+import Prelude hiding (id)
+import qualified Data.Maybe
 
-data DerivedClause = Derived {derived::Clause, parent1 :: Clause, parent2 :: Clause} deriving (Show, Generic, ToJSON)
-data ProofResult = Result { isUnsat :: Bool, actives :: [DerivedClause], passives:: [DerivedClause]} deriving (Show, Generic, ToJSON)
+type ProofSearchState = State Int
+
+-- A helper function to get a unique clause Id
+getNextId :: ProofSearchState Int
+getNextId = do
+    current <- get
+    put (current + 1)
+    return current
+
+
+data Step = Resolution | Factorisation deriving (Show, Generic, ToJSON)
+
+data ProofSearch = Search { isUnsat :: Maybe Bool, actives :: [DerivedClause], passives:: [DerivedClause]} deriving (Show, Generic, ToJSON)
+
+data DerivedClause =
+    Derived {
+        derived :: Clause,
+        parent1 :: DerivedClause,
+        parent2 :: DerivedClause,
+        step :: Step,
+        clauseId :: Int
+        }
+    | Axiom {derived :: Clause, clauseId:: Int}
+    deriving (Show, Generic, ToJSON)
+
+
+
+-- Given a list of list of literals as clauses 
+-- Returns a list of axioms to be used as input to the solver
+createAxioms :: [[Literal]] -> [DerivedClause]
+createAxioms litsList =
+    zipWith (\ lits i -> Axiom {derived = Clause lits, clauseId = i}) litsList [1..]
+-- createAxioms :: [[Literal]] -> ProofSearchState [DerivedClause]
+-- createAxioms = mapM createSingleAxiom
+--   where
+--     createSingleAxiom lits = do
+--         newId <- getNextId
+--         return (Axiom {axiom = Clause lits, id = newId})
 
 -- Solves whether a set of clauses is unsatisfiable 
 -- If the set is Unsatisfiable then True is returned 
 -- If the set if Satisfiable then False is returned 
-solve :: [[Literal]] -> Bool
+solve :: [Clause] -> Bool
 solve initialClauses = givenClauseLoop initialClauses []
 
 -- Takes a passive set and an active set and iterates through the 
@@ -28,129 +68,126 @@ solve initialClauses = givenClauseLoop initialClauses []
 -- added to the passive set. If the passive set is empty, then we say that we have saturated the 
 -- proof search, and the set of clauses is satisfiable 
 -- If we derive the empty clause then the set of clauses is unsatisfiable   
-givenClauseLoop :: [[Literal]] -> [[Literal]] -> Bool
+givenClauseLoop :: [Clause] -> [Clause] -> Bool
 givenClauseLoop [] _ = False
-givenClauseLoop (x:xs) actives =
+givenClauseLoop (Clause x:xs) actives =
     x == [] || givenClauseLoop sortedPassives newActives
             where
-                resolved = concatMap (resolution x) actives
-                factored = factorise x
+                resolved = concatMap (resolution (Clause x)) actives
+                factored = map Clause (factorise x)
                 newPassives = xs ++ resolved ++ factored
-                sortedPassives = sortOn length newPassives
-                newActives = x : actives
+                sortedPassives = sortOn (length . getLiterals) newPassives
+                newActives = Clause x : actives
 
--- Given an initial set of passive and active clauses 
--- Returns all the clauses derivied during a proof search 
-findAllDerivedClauses :: [[Literal]] -> [[Literal]] -> [[Literal]]
-findAllDerivedClauses [] actives = actives
-findAllDerivedClauses (x:xs) actives =
-    findAllDerivedClauses sortedPassives newActives
-            where
-                resolved = concatMap (resolution x) actives
-                factored = factorise x
-                newPassives = xs ++ resolved ++ factored
-                sortedPassives = sortOn length newPassives
-                newActives = x : actives
+-- Runs a proof search for N Steps 
+-- Returns the passive and active sets created 
+-- And Maybe a result
+proofSearchAfterNSteps :: Int -> [DerivedClause] -> [DerivedClause] -> ProofSearchState ProofSearch
+proofSearchAfterNSteps _ [] actives = return Search {isUnsat= Just False, actives = actives, passives = []}
+proofSearchAfterNSteps 0 passives actives = return Search{isUnsat = Nothing, actives = actives, passives = passives}
+proofSearchAfterNSteps n (selected: passives) actives =
+    do
+        factored <- factorisingWithDerivedClause selected
+        resolved <- concat <$> mapM (resolutionWithDerivedClauses selected) actives
+        let newPassives = passives ++ factored ++ resolved
+        let newActives = selected : actives
+        let sortedPassives = sortOn (length . getLiterals . derived) newPassives
+        let unsat = derivedFalse sortedPassives
+        if unsat then return Search {isUnsat = Just True, actives = selected : newActives, passives = newPassives}
+        else proofSearchAfterNSteps (n-1) sortedPassives newActives
 
--- Given an initial set of passive and active clauses 
--- Returns all the clauses derivied during a proof search 
-findDerivedClausesForNSteps :: [[Literal]] -> [[Literal]] -> Integer -> [[Literal]]
-findDerivedClausesForNSteps [] actives _ = actives
-findDerivedClausesForNSteps passives actives 0 = actives ++ passives
-findDerivedClausesForNSteps (x:xs) actives n =
-    findDerivedClausesForNSteps sortedPassives newActives (n-1)
-            where
-                resolved = concatMap (resolution x) actives
-                factored = factorise x
-                newPassives = xs ++ resolved ++ factored
-                sortedPassives = sortOn length newPassives
-                newActives = x : actives
+-- Solves a problem and returns the passive and active sets created during the proof search as well as the result 
+solveWithProofSearch :: [DerivedClause] -> [DerivedClause] -> ProofSearchState ProofSearch
 
--- Performs a Proof Search for N steps 
--- Records each active clause in the proof search 
--- As well as the parents of the active clause 
-proofSearchAfterNSteps :: [([Literal], [Literal], [Literal])] -> [([Literal], [Literal], [Literal])] -> Integer -> [([Literal],[Literal], [Literal])]
-proofSearchAfterNSteps passives actives n = case (passives, actives, n) of
-    ([], actives, _) -> actives
-    (([], p1, p2):_, actives, _) -> actives ++ [([], p1, p2)]
-    (_, _, 0) -> actives
-    ((selected, parent1, parent2):xs, actives, n) ->
-        proofSearchAfterNSteps sortedPassives newActives (n-1)
-            where
-                factored = factorisingWithParent selected
-                resolved = concatMap (resolutionWithParents selected . (\(clause, _, _) -> clause)) actives
-                newPassives = xs ++ resolved ++ factored
-                sortedPassives = sortOn (\(x,_,_)-> length x) newPassives
-                newActives = (selected, parent1, parent2) : actives
+solveWithProofSearch [] actives = return Search {isUnsat = Just False, actives = actives, passives = []}
+
+solveWithProofSearch (current@(Derived {derived = Clause []}) : passives) actives =
+    return Search { isUnsat = Just True, actives = current : actives, passives = passives }
+
+solveWithProofSearch (selected : passives) actives =
+            do
+                factored <- factorisingWithDerivedClause selected
+                resolved <- concat <$> mapM (resolutionWithDerivedClauses selected) actives
+                let newPassives = passives ++ factored ++ resolved
+                let newActives = selected : actives
+                let sortedPassives = sortOn (length . getLiterals . derived) newPassives
+                let unsat = derivedFalse sortedPassives
+                if unsat then return Search {isUnsat = Just True, actives = selected : newActives, passives = newPassives}
+                else solveWithProofSearch sortedPassives newActives
 
 
-solveWithResult :: [DerivedClause] -> [DerivedClause] -> ProofResult
-solveWithResult [] actives = Result {isUnsat = False, actives = actives, passives = []}
-solveWithResult (current@(Derived (Clause []) _ _) : passives) actives = Result { isUnsat = True, actives = current : actives, passives = passives }
-solveWithResult (selected : passives) actives =
-        if unsat then Result {isUnsat = True, actives = selected : newActives, passives = newPassives}
-        else solveWithResult newPassives newActives
+-- Solves a problem, and if Unsatisfiable returns a DerivedClause Object from which the proof can be obtained 
+solveWithProof :: [DerivedClause] -> [DerivedClause] -> ProofSearchState (Maybe DerivedClause)
+solveWithProof [] _ = return Nothing
+solveWithProof (selected@(Derived {derived = Clause []}): _) _ = return (Just selected)
+solveWithProof (selected: passives) actives =
+    do
+        factored <- factorisingWithDerivedClause selected
+        resolved <- concat <$> mapM (resolutionWithDerivedClauses selected) actives
+        let newPassives = passives ++ factored ++ resolved
+        let newActives = selected : actives
+        let sortedPassives = sortOn (length . getLiterals . derived) newPassives
+        let unsat = derivedFalseClause sortedPassives
+        if Data.Maybe.isJust unsat then return unsat
+        else solveWithProof sortedPassives newActives
+
+
+-- Returns True if the empty clause is contained in the list 
+derivedFalse :: [DerivedClause] -> Bool
+derivedFalse = foldr (\ x -> (||) (x.derived == Clause [])) False
+
+derivedFalseClause :: [DerivedClause] -> Maybe DerivedClause
+derivedFalseClause [] = Nothing
+derivedFalseClause (x:xs) = if x.derived == Clause [] then Just x
+                            else derivedFalseClause xs
+
+
+-- Performs resolution with derived clause type 
+-- Labels each clause with a unique id
+resolutionWithDerivedClauses :: DerivedClause -> DerivedClause -> ProofSearchState [DerivedClause]
+resolutionWithDerivedClauses active selected = do
+    let activeLits = getLiterals active.derived
+    let selectedLits = getLiterals selected.derived
+    let stdSelected = standardiseApartClause activeLits selectedLits
+    let results = resolve stdSelected activeLits
+    mapM (createDerived . Clause)  results
     where
-        unsat = derivedFalse sortedPassives
-        newPassives = passives ++ factored ++ resolved
-        sortedPassives = sortOn (length . getLiterals . derived) newPassives
-        newActives = selected : actives
-        factored = factorisingWithParent2 (derived selected)
-        resolved = concatMap (resolutionWithParents2 (derived selected) . derived) actives
-
-derivedFalse :: [DerivedClause] -> Bool 
-derivedFalse [] = False 
-derivedFalse (x:_) = case x of 
-    (Derived (Clause []) _ _) -> True 
-    _ -> False
-
--- Performs resolution between two clauses 
--- Returns all possible resolutions between the two clauses 
--- As well as returning the parents for each derived clause 
-resolutionWithParents2 :: Clause -> Clause -> [DerivedClause]
-resolutionWithParents2 clauseA clauseB =
-    map (\x -> Derived{derived = x, parent1 = clauseA, parent2 = clauseB}) resolvedClauses
-    where
-         resolvedClauses = resolution2 clauseA clauseB
-
+        createDerived clauseBody = do
+            newId <- getNextId
+            return Derived
+                {
+                    derived = clauseBody,
+                    parent1 = active,
+                    parent2 = selected,
+                    clauseId = newId,
+                    step = Resolution
+                }
 
 -- Given two clauses  
--- Standardise aprt the two clauses 
+-- Standardise apart the two clauses 
 -- And return all the possible clauses created using resolution
 -- Returns all the possible clauses you can derive between them  
-resolution2 :: Clause -> Clause -> [Clause]
-resolution2 (Clause active_clause) (Clause selected_clause) =
+resolution :: Clause -> Clause -> [Clause]
+resolution (Clause active_clause) (Clause selected_clause) =
     map Clause (resolve standardised_selected_clause active_clause)
     where
     standardised_selected_clause = standardiseApartClause active_clause selected_clause
 
-
-
--- Performs resolution between two clauses 
--- Returns all possible resolutions between the two clauses 
--- As well as returning the parents for each derived clause 
-resolutionWithParents :: [Literal] -> [Literal] -> [([Literal], [Literal], [Literal])]
-resolutionWithParents clauseA clauseB =
-    map (\x -> (x, clauseA, clauseB)) resolvedClauses
+-- Performs factorisation with DerivedClause Type 
+-- Labels each new clause with a type 
+factorisingWithDerivedClause :: DerivedClause -> ProofSearchState [DerivedClause]
+factorisingWithDerivedClause clause = do
+    let clauseLiterals = getLiterals clause.derived
+    let factorisedClauses = factorise clauseLiterals
+    mapM (createDerived . Clause) factorisedClauses
     where
-         resolvedClauses = resolution clauseA clauseB
-
-
--- Given two clauses  
--- Standardise aprt the two clauses 
--- And return all the possible clauses created using resolution
--- Returns all the possible clauses you can derive between them  
-resolution :: [Literal] -> [Literal] -> [[Literal]]
-resolution active_clause selected_clause =
-    resolve standardised_selected_clause active_clause
-    where
-    standardised_selected_clause = standardiseApartClause active_clause selected_clause
-
-
-factorisingWithParent2 :: Clause -> [DerivedClause]
-factorisingWithParent2 (Clause clause) = map (\fc -> Derived {derived = Clause fc, parent1 = Clause clause, parent2 = Clause clause}) factorisedClauses
-    where factorisedClauses = factorise clause
-
-factorisingWithParent :: [Literal] -> [([Literal], [Literal], [Literal])]
-factorisingWithParent clause = map (\fc -> (fc, clause, clause)) factorisedClauses
-    where factorisedClauses = factorise clause
+        createDerived clauseBody = do
+            newId <- getNextId
+            return Derived
+                {
+                    derived = clauseBody,
+                    parent1 = clause,
+                    parent2 = clause,
+                    clauseId = newId,
+                    step = Factorisation
+                }

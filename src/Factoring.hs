@@ -14,17 +14,6 @@ samePolarityPairs ((a,b): xs) = case (a, b) of
     (Neg _, Neg _) -> (a,b): samePolarityPairs xs
     _ -> samePolarityPairs xs
 
-
--- Factorise a clause
--- Removes literals of the same polarity that unify 
-factorise :: [Literal] -> [[Literal]]
-factorise [] = []
-factorise [_] = []
-factorise clause = 
-        map (applyFactorisation clause) pairs         
-    where
-        pairs = unifyingPairs (samePolarityPairs (uniquePairs clause))
-
 -- for each pair 
 -- apply the substitution to the clause and one of the literals
 -- remove the subbed literal from the clause   
@@ -34,4 +23,13 @@ applyFactorisation clause (l1, _, sub) = removeFirstOccurenceFromClause subbedCl
         subbedClause = applySubToClause sub clause
         subbedLiteral = applySubToLiteral sub l1
 
+-- Factorise a clause
+-- Removes literals of the same polarity that unify 
+factorise :: [Literal] -> [[Literal]]
+factorise literals  = case literals of 
+    [] -> []
+    [_] -> []
+    _  -> map (applyFactorisation literals) pairs 
+    where  
+        pairs = unifyingPairs (samePolarityPairs (uniquePairs literals))
 

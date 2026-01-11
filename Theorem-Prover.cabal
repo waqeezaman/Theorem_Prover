@@ -73,6 +73,7 @@ library
         Utils,
         Resolution,
         GivenClauseLoop,
+        HandleProof,
         Socrates
 
     -- Modules included in this library but not exported.
@@ -87,7 +88,9 @@ library
         base ^>=4.17.2.1,
         containers >= 0.6 && < 0.8,
         aeson,
-        bytestring
+        aeson-pretty,
+        bytestring,
+        mtl
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -104,15 +107,6 @@ executable Theorem-Prover
 
     -- Modules included in this executable, other than Main.
     other-modules:   
-                    FOL,
-                    Factoring,
-                    GivenClauseLoop,
-                    Resolution,
-                    Socrates,
-                    Substitution,
-                    Unification,
-                    Utils,
-                    Parser
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -125,10 +119,11 @@ executable Theorem-Prover
         aeson,
         aeson-pretty,
         bytestring,
+        mtl,
         Theorem-Prover
 
     -- Directories containing source files.
-    hs-source-dirs:   app, src
+    hs-source-dirs:   app 
 
     -- Base language which the package is written in.
     default-language: GHC2021

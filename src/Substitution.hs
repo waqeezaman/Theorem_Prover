@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 module Substitution (
     generalise,
     termSubstituition,
@@ -20,7 +21,7 @@ freeVariablesInTerm (Fn (_, args)) =  Set.unions (map freeVariablesInTerm args)
 freeVariablesInFormula :: Formula -> Set String
 freeVariablesInFormula FFalse = Set.empty
 freeVariablesInFormula FTrue = Set.empty
-freeVariablesInFormula  (Atom (R  (p ,args ) )) = Set.unions( map freeVariablesInTerm args)
+freeVariablesInFormula  (Atom (R  (_ ,args ) )) = Set.unions( map freeVariablesInTerm args)
 freeVariablesInFormula  (Not p) = freeVariablesInFormula p
 freeVariablesInFormula  (And p q) =  freeVariablesInFormula p `Set.union` freeVariablesInFormula q
 freeVariablesInFormula  (Or p q ) =  freeVariablesInFormula p `Set.union` freeVariablesInFormula q

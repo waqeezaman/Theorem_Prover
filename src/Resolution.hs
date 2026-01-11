@@ -1,5 +1,5 @@
 module Resolution where
-import FOL ( Literal(..) )
+import FOL ( Literal(..))
 import Unification (Sub, applySubToClause, applySubToLiteral, unifyingPairs)
 import Utils (uniquePairsBetweenLists)
 
