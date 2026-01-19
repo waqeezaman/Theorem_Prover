@@ -31,7 +31,7 @@ data Formula = FFalse | FTrue | Atom Predicate | Not Formula
                 | Forall  String Formula | Exists String Formula deriving (Eq)
 
 data Literal = Pos Predicate | Neg Predicate deriving (Eq, Ord, Show, Generic, ToJSON)
-newtype Clause = Clause [Literal] deriving (Show, Eq, Generic)
+newtype Clause = Clause [Literal] deriving (Show, Eq, Ord, Generic)
 
 instance ToJSON Clause where
     toJSON :: Clause -> Value

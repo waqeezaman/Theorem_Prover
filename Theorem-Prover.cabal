@@ -78,7 +78,8 @@ library
         GivenClauseLoop.ProofSearch,
         GivenClauseLoop.RatioSolver,
         GivenClauseLoop.Solvers,
-        GivenClauseLoop.Types
+        GivenClauseLoop.Types,
+        Subsumption.SubsumptionFilter
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -183,7 +184,15 @@ test-suite Theorem-Prover-test
         Resolution.OpposingPolarityPairsTests,
         Resolution.ApplyResolutionTests,
         Resolution.ResolveTests,
-        Resolution.RunResolutionTests
+        Resolution.RunResolutionTests,
+        Subsumption.ExtractSymbolsFromTermTests,
+        Subsumption.ExtractSymbolsFromLiteralTests,
+        Subsumption.ExtractSymbolsFromClauseTests,
+        Subsumption.GetFeatureVectorTests,
+        Subsumption.GetSymbolOrderTests,
+        Subsumption.InsertInClauseTrieTests,
+        Subsumption.RetrieveAllSubsumingClausesTests,
+        Subsumption.RunSubsumptionTests
 
 
     -- LANGUAGE extensions used by modules in this package.

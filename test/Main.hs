@@ -13,6 +13,7 @@ import Unification.RunUnificationTests (runUnificationTests)
 import Utils.RunUtilsTests (runUtilsTests)
 import Factoring.RunFactoringTests (runFactoringTests)
 import Resolution.RunResolutionTests (runResolutionTests)
+import Subsumption.RunSubsumptionTests(runSubsumptionTests)
 
 testOutputs =   runBinaryTests ++
                 runModTests ++
@@ -25,6 +26,7 @@ testOutputs =   runBinaryTests ++
                 runUnificationTests ++ 
                 runUtilsTests ++ 
                 runFactoringTests ++ 
-                runResolutionTests
+                runResolutionTests ++ 
+                runSubsumptionTests
 
 main = putStrLn testOutputs
