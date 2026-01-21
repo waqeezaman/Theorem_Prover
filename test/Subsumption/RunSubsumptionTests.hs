@@ -6,7 +6,15 @@ import Subsumption.ExtractSymbolsFromClauseTests (runExtractSymbolsFromClauseTes
 import Subsumption.GetFeatureVectorTests (runGetFeatureVectorTests)
 import Subsumption.GetSymbolOrderTests (runGetSymbolOrderTests)
 import Subsumption.InsertInClauseTrieTests (runInsertInClauseTrieTests)
-import Subsumption.RetrieveAllSubsumingClausesTests (runRetrieveAllSubsumingClausesTests)
+import Subsumption.RetrieveAllPossiblySubsumingClausesTests (runRetrieveAllPossiblySubsumingClausesTests)
+import Subsumption.GetVarsInClauseTests (runGetVarsInClauseTests)
+import Subsumption.GroundClauseTests (runGroundClauseTests)
+import Subsumption.MatchTermTests (runMatchTermTests)
+import Subsumption.MatchTermsTests (runMatchTermsTests)
+import Subsumption.MatchPredicatesTests (runMatchPredicatesTests)
+import Subsumption.MatchLiteralsTests (runMatchLiteralsTests)
+import Subsumption.CanMatchTests (runCanMatchTests)
+import Subsumption.IsSubsumedByTests (runIsSubsumedByTests)
 
 runSubsumptionTests = concat 
     [
@@ -17,5 +25,13 @@ runSubsumptionTests = concat
         runGetFeatureVectorTests,
         runGetSymbolOrderTests,
         runInsertInClauseTrieTests,
-        runRetrieveAllSubsumingClausesTests
+        runRetrieveAllPossiblySubsumingClausesTests, 
+        runGetVarsInClauseTests,
+        runGroundClauseTests,
+        runMatchTermTests,
+        runMatchTermsTests,
+        runMatchPredicatesTests,
+        runMatchLiteralsTests,
+        runCanMatchTests,
+        runIsSubsumedByTests
     ]

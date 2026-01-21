@@ -1,8 +1,8 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
-module Subsumption.RetrieveAllSubsumingClausesTests (runRetrieveAllSubsumingClausesTests) where
+module Subsumption.RetrieveAllPossiblySubsumingClausesTests (runRetrieveAllPossiblySubsumingClausesTests) where
 import Subsumption.SubsumptionFilter
     ( getFeatureVector,
-      retrieveAllSubsumingClauses,
+      retrieveAllPossiblySubsumingClauses,
       ClauseTrie(ClauseTrieNode),
       getSymbolOrder )
 import qualified Data.Map as Map
@@ -129,25 +129,25 @@ trie = ClauseTrieNode []
 
 symbolOrdering = getSymbolOrder [clause1, clause2, clause3, clause4, clause5, clause6]
 
-retrieval1 = retrieveAllSubsumingClauses symbolOrdering clause1FV trie
+retrieval1 = retrieveAllPossiblySubsumingClauses symbolOrdering clause1FV trie
 expected1 = [clause1]
 
-retrieval2 = retrieveAllSubsumingClauses symbolOrdering clause2FV trie
+retrieval2 = retrieveAllPossiblySubsumingClauses symbolOrdering clause2FV trie
 expected2 = [clause2]
 
-retrieval3 = retrieveAllSubsumingClauses symbolOrdering clause3FV trie
+retrieval3 = retrieveAllPossiblySubsumingClauses symbolOrdering clause3FV trie
 expected3 = [clause3]
 
-retrieval4 = retrieveAllSubsumingClauses symbolOrdering clause4FV trie
+retrieval4 = retrieveAllPossiblySubsumingClauses symbolOrdering clause4FV trie
 expected4 = [clause4]
 
-retrieval5 = retrieveAllSubsumingClauses symbolOrdering clause5FV trie
+retrieval5 = retrieveAllPossiblySubsumingClauses symbolOrdering clause5FV trie
 expected5 = [clause2, clause3, clause5]
 
-retrieval6 = retrieveAllSubsumingClauses symbolOrdering clause6FV trie
+retrieval6 = retrieveAllPossiblySubsumingClauses symbolOrdering clause6FV trie
 expected6 = [clause1, clause4, clause6]
 
-retrieval7 = retrieveAllSubsumingClauses symbolOrdering Map.empty trie
+retrieval7 = retrieveAllPossiblySubsumingClauses symbolOrdering Map.empty trie
 expected7 = []
 
 
@@ -161,7 +161,7 @@ test7 = retrieval7 == expected7
 
 
 
-runRetrieveAllSubsumingClausesTests = concat
+runRetrieveAllPossiblySubsumingClausesTests = concat
     [ "\n\n Running Retrieve All Subsuming Clauses tests",
         "\n Test 1: " ++ show test1,
         "\n Test 2: " ++ show test2,

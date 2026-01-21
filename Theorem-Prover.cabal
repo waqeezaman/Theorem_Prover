@@ -79,7 +79,9 @@ library
         GivenClauseLoop.RatioSolver,
         GivenClauseLoop.Solvers,
         GivenClauseLoop.Types,
-        Subsumption.SubsumptionFilter
+        Subsumption.SubsumptionFilter,
+        Subsumption.Subsumption,
+        Subsumption.Matching
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -191,7 +193,15 @@ test-suite Theorem-Prover-test
         Subsumption.GetFeatureVectorTests,
         Subsumption.GetSymbolOrderTests,
         Subsumption.InsertInClauseTrieTests,
-        Subsumption.RetrieveAllSubsumingClausesTests,
+        Subsumption.RetrieveAllPossiblySubsumingClausesTests,
+        Subsumption.GetVarsInClauseTests,
+        Subsumption.GroundClauseTests,
+        Subsumption.MatchTermTests,
+        Subsumption.MatchTermTests,
+        Subsumption.MatchPredicatesTests,
+        Subsumption.MatchLiteralsTests,
+        Subsumption.CanMatchTests,
+        Subsumption.IsSubsumedByTests,
         Subsumption.RunSubsumptionTests
 
 

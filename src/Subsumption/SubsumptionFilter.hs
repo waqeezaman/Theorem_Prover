@@ -19,16 +19,15 @@ data SubsumptionProofState = SubsumptionProofState
         clauseTrie :: ClauseTrie
     }
 
--- The feature vector should really be a list of int
--- following a strict ordering on symbols 
--- Where each int represents the frequency of a term
 
 -- A Feature Vector maps a Symbol (String) to its frequency in a clause
 type FeatureVector = Map String Int
 
--- getFeatureVectorList :: FeatureVector -> [String] -> [Int] -> [Int]
--- getFeatureVectorList vector [] 
-
+data ClauseTrie = ClauseTrieNode
+    {
+        values :: [Clause],
+        children :: Map Int ClauseTrie
+    } deriving (Eq, Show)
 
 getSymbolOrder :: [Clause] -> [String]
 getSymbolOrder clauses = sort $ nub $ concatMap extractSymbolsFromClause clauses
@@ -50,18 +49,6 @@ extractSymbolsFromLiteral (Pos (R(p, terms))) = (predConst++p) : concatMap extra
 extractSymbolsFromLiteral (Neg (R(p, terms))) = (negLiteralConst++predConst++p) : concatMap extractSymbolsFromTerm terms
 
 
--- Subsumption check pre-filter: 
--- Returns True if 'c' COULD potentially subsume 'd'.
-containsSubsetOfSymbols :: FeatureVector -> FeatureVector -> Bool
-containsSubsetOfSymbols = Map.isSubmapOfBy (<=)
-
-
-data ClauseTrie = ClauseTrieNode
-    {
-        values :: [Clause],
-        children :: Map Int ClauseTrie
-    } deriving (Eq, Show)
-
 emptyClauseTrie :: ClauseTrie
 emptyClauseTrie = ClauseTrieNode [] Map.empty
 
@@ -76,11 +63,11 @@ insertInClauseTrie (symbol:symbols) clause featureVector (ClauseTrieNode clauses
         newBranch = insertInClauseTrie symbols clause featureVector  branch
 
 
-retrieveAllSubsumingClauses :: [String] -> FeatureVector -> ClauseTrie -> [Clause]
-retrieveAllSubsumingClauses [] _ (ClauseTrieNode clauses _) = clauses
-retrieveAllSubsumingClauses (symbol: symbols) featureVector (ClauseTrieNode clauses children) =
+retrieveAllPossiblySubsumingClauses :: [String] -> FeatureVector -> ClauseTrie -> [Clause]
+retrieveAllPossiblySubsumingClauses [] _ (ClauseTrieNode clauses _) = clauses
+retrieveAllPossiblySubsumingClauses (symbol: symbols) featureVector (ClauseTrieNode clauses children) =
     clauses ++ results
     where 
         symbolCount = Map.findWithDefault 0 symbol featureVector
         branches = Map.filterWithKey (\frequency _ -> frequency <= symbolCount) children
-        results = concatMap (retrieveAllSubsumingClauses symbols featureVector) (Map.elems branches)
+        results = concatMap (retrieveAllPossiblySubsumingClauses symbols featureVector) (Map.elems branches)
