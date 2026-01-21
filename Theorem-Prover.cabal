@@ -80,8 +80,7 @@ library
         GivenClauseLoop.Solvers,
         GivenClauseLoop.Types,
         Subsumption.SubsumptionFilter,
-        Subsumption.Subsumption,
-        Subsumption.Matching
+        Subsumption.Subsumption
 
     -- Modules included in this library but not exported.
     -- other-modules:
