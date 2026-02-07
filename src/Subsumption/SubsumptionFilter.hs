@@ -1,4 +1,12 @@
-module Subsumption.SubsumptionFilter where
+module Subsumption.SubsumptionFilter 
+    (
+        getSymbolOrder, 
+        getFeatureVector,
+        emptyClauseTrie,
+        insertInClauseTrie,
+        retrieveAllPossiblySubsumingClauses,
+        ClauseTrie(..)
+    ) where
 
 
 import Data.Map (Map)
@@ -13,14 +21,8 @@ predConst = "_P_"
 negLiteralConst :: String
 negLiteralConst = "_¬_"
 
-data SubsumptionProofState = SubsumptionProofState
-    {
-        symbolOrdering :: [String],
-        clauseTrie :: ClauseTrie
-    }
 
-
--- A Feature Vector maps a Symbol (String) to its frequency in a clause
+-- A Feature Vector maps a symbol to its frequency in a clause
 type FeatureVector = Map String Int
 
 data ClauseTrie = ClauseTrieNode
@@ -62,7 +64,7 @@ insertInClauseTrie (symbol:symbols) clause featureVector (ClauseTrieNode clauses
         branch = Map.findWithDefault emptyClauseTrie frequency children
         newBranch = insertInClauseTrie symbols clause featureVector  branch
 
-
+-- Returns all clauses that may subsume the clause represented by this feature vector 
 retrieveAllPossiblySubsumingClauses :: [String] -> FeatureVector -> ClauseTrie -> [Clause]
 retrieveAllPossiblySubsumingClauses [] _ (ClauseTrieNode clauses _) = clauses
 retrieveAllPossiblySubsumingClauses (symbol: symbols) featureVector (ClauseTrieNode clauses children) =

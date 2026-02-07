@@ -75,12 +75,16 @@ library
         HandleProof,
         Socrates,
         GivenClauseLoop.Helpers,
-        GivenClauseLoop.ProofSearch,
-        GivenClauseLoop.RatioSolver,
-        GivenClauseLoop.Solvers,
+        GivenClauseLoop.State,
         GivenClauseLoop.Types,
+        GivenClauseLoop.InferenceGeneration,
+        GivenClauseLoop.PassiveQueueHandling,
+        GivenClauseLoop.Solver,
         Subsumption.SubsumptionFilter,
-        Subsumption.Subsumption
+        Subsumption.Subsumption,
+        PassiveQueue,
+        Filtering,
+        Config
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -92,13 +96,15 @@ library
     build-depends:    
         megaparsec ^>=9.7.0,
         base ^>=4.17.2.1,
+        extra,
         containers >= 0.6 && < 0.8,
         aeson,
         aeson-pretty,
         bytestring,
         text,
         pqueue,
-        mtl
+        mtl,
+        lens
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -122,6 +128,7 @@ executable Theorem-Prover
     -- Other library packages from which modules are imported.
     build-depends:
         base ^>=4.17.2.1,
+        extra,
         containers >= 0.6 && < 0.8,
         megaparsec  ^>=9.7.0,
         aeson,

@@ -9,16 +9,12 @@
 
 module GivenClauseLoop.Types where
 
-import qualified Data.PQueue.Prio.Min as PQ
 import FOL (Clause)
-import Control.Monad.State (State)
 import Data.Aeson (ToJSON (toJSON), object, KeyValue ((.=)))
 import GHC.Generics (Generic)
 
-type PassiveSetPriorityQueue = PQ.MinPQueue Int Clause
-type ProofSearchState = State Int
+
 data Step = Resolution | Factorisation deriving (Show, Generic, ToJSON)
-data ProofSearch = Search { isUnsat :: Maybe Bool, actives :: [DerivedClause], passives:: [DerivedClause]} deriving (Show, Generic, ToJSON)
 
 data DerivedClause =
     Derived {

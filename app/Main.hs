@@ -2,45 +2,58 @@
 {-# HLINT ignore "Use ++" #-}
 {-# HLINT ignore "Use tuple-section" #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
+{-# LANGUAGE OverloadedRecordDot #-}
+
 module Main where
 
 import Options.Applicative
+    ( (<**>),
+      optional,
+      footer,
+      fullDesc,
+      header,
+      help,
+      info,
+      long,
+      metavar,
+      prefs,
+      progDesc,
+      short,
+      showHelpOnEmpty,
+      showHelpOnError,
+      strArgument,
+      strOption,
+      customExecParser,
+      helper,
+      Parser )
 import Parser (parseTPTP)
 import Text.Megaparsec (errorBundlePretty)
-import FOL
-import HandleProof ( writeProofToFile, writeSearchToFile )
-import Control.Monad.State (evalState)
-import GivenClauseLoop.Solvers (solvePQ, solve)
-import GivenClauseLoop.ProofSearch ( solveWithProof, proofSearchAfterNSteps, solveWithProofSearch )
-import GivenClauseLoop.Helpers (createAxioms)
--- import GivenClauseLoop (createAxioms)
+import FOL ( Clause(Clause) )
+import HandleProof ( writeProofToFile )
+import Control.Monad.State ( evalState )
+import Config (loadConfig, defaultConfig, Config(..))
+import PassiveQueue ( pqConfigToPQ )
+import Filtering ( composeFilteringTypesIntoFilterFunction )
+import GivenClauseLoop.State
+    ( ProofSearch(_isUnsat, _derivation), initialiseState )
+import GivenClauseLoop.Solver ( solve )
 
-data ProverMode = WriteProof | NSteps | ProofSearch | Solver
+
+data ProverMode = WriteProof | NSteps | ProofSearch | Solver | SubsumptionProof | SubsumptionSolve
 
 data Options = Options
     {
-        mode :: ProverMode,
         input :: FilePath,
         output :: Maybe FilePath,
-        steps :: Int
+        config :: Maybe FilePath
     }
 
-modeParser :: Parser ProverMode
-modeParser = subparser
-    (  command "proof" (info (pure WriteProof) (progDesc "Solve and write proof to file"))
-    <> command "nsteps" (info (pure NSteps) (progDesc "Run for N steps and print result"))
-    <> command "search" (info (pure ProofSearch) (progDesc "Full proof search state printout"))
-    <> command "solve"  (info (pure Solver) (progDesc "Standard solver (True/False only)"))
-    )
 
 optionsParser :: Parser Options
 optionsParser = Options
-    <$> (modeParser <|> pure Solver)
-    <*> strArgument (metavar "INPUT" <> help "TPTP input file")
+    <$> strArgument (metavar "INPUT" <> help "TPTP input file")
     <*> optional (strOption (long "output" <> short 'o' <> metavar "FILE" <> help "Output file path"))
-    <*> option auto (long "steps" <> short 'n' <> value 3000 <> showDefault <> help "Max steps for search")
-
-
+    <*> optional (strOption (long "config" <> short 'c' <> metavar "CONFIG" <> help "Config file path"))
 
 main :: IO ()
 main = do
@@ -49,70 +62,37 @@ main = do
             (  fullDesc
             <> progDesc "A First Order Logic Resolution Prover"
             <> header "Theorem-Prover"
-            <> footer "Example: Theorem-Prover PUZ001-1.p solve --verbose"
+            <> footer "Example: Theorem-Prover solve PUZ001-1.p"
             )
     opts <- customExecParser p m
     runWithOptions opts
 
 
 runWithOptions :: Options -> IO ()
-runWithOptions (Options Solver f  _ _ )      = runProver f
-runWithOptions (Options NSteps f (Just o) n )      = runForNSteps f o n
-runWithOptions (Options NSteps _ Nothing _ ) = putStrLn "Error: --output required for proof search for n steps mode"
-runWithOptions (Options WriteProof f  (Just o) _ ) = writeProof f o
-runWithOptions (Options WriteProof _  Nothing _ )  = putStrLn "Error: --output required for write mode"
-runWithOptions (Options ProofSearch f  (Just o) _ ) = runProofSearch f o
-runWithOptions (Options ProofSearch _  Nothing _ ) = putStrLn "Error: --output required for proof search mode"
+runWithOptions opts = runProver opts.input opts.output opts.config
 
-runProver inputFile = do
-    input <- readFile inputFile
-
-    case parseTPTP input of
-        Left err -> do
-            putStrLn "Parser Error:"
-            putStrLn (errorBundlePretty err)
-
+runProver :: FilePath -> Maybe FilePath -> Maybe FilePath -> IO ()
+runProver inputFile mOutputFile mConfigFile = do
+    contents <- readFile inputFile
+    case parseTPTP contents of
+        Left parseError -> do
+            putStrLn "Parser Error"
+            putStrLn (errorBundlePretty parseError)
         Right clauses -> do
-            let result = solve (map Clause clauses)
-            print result
+            let axioms = map Clause clauses
+            
+            config <- case mConfigFile of
+                        Just path -> loadConfig path
+                        Nothing   -> return defaultConfig
 
+            let passiveQueues = map pqConfigToPQ config.passiveQueues
+            let filterFunction = composeFilteringTypesIntoFilterFunction config.filterFunction
+            let initialState = initialiseState axioms config.stopAfterNSteps passiveQueues filterFunction
+            
+            let proof = evalState solve initialState
 
-writeProof :: FilePath -> FilePath -> IO ()
-writeProof inputFile outputFile = do
-    input <- readFile inputFile
-    case parseTPTP input of
-        Left err -> do
-            putStrLn "Parser Error:"
-            putStrLn (errorBundlePretty err)
+            case mOutputFile of
+                Just path -> writeProofToFile path proof._derivation
+                Nothing   -> putStrLn "No output file specified; skipping file save."
 
-        Right clauses -> do
-            let axioms = createAxioms clauses
-            let result = evalState (solveWithProof axioms []) (length axioms+1)
-            writeProofToFile outputFile result
-
-
-runForNSteps :: FilePath -> FilePath -> Int -> IO ()
-runForNSteps inputFile outputFile n = do
-    input <- readFile inputFile
-    case parseTPTP input of
-        Left err -> do
-            putStrLn "Parser Error:"
-            putStrLn (errorBundlePretty err)
-
-        Right clauses -> do
-            let axioms = createAxioms clauses
-            let result = evalState (proofSearchAfterNSteps n axioms [] ) (length axioms+1)
-            writeSearchToFile outputFile result
-
-runProofSearch :: FilePath -> FilePath -> IO ()
-runProofSearch inputFile outputFile = do
-    input <- readFile inputFile
-    case parseTPTP input of
-        Left err -> do
-            putStrLn "Parser Error:"
-            putStrLn (errorBundlePretty err)
-
-        Right clauses -> do
-            let axioms = createAxioms clauses
-            let result = evalState (solveWithProofSearch axioms [] ) (length axioms+1)
-            writeSearchToFile outputFile result
+            print proof._isUnsat

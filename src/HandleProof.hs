@@ -3,10 +3,8 @@
 module HandleProof where
 
 import Data.List (nubBy, sortOn)
-import qualified Data.ByteString.Lazy as B
-import Data.Aeson.Encode.Pretty (encodePretty)
 
-import GivenClauseLoop.Types (DerivedClause (..), ProofSearch)
+import GivenClauseLoop.Types (DerivedClause (..))
 
 formatStep :: DerivedClause -> String
 formatStep (Axiom c cid) =
@@ -28,7 +26,8 @@ getLinearProof goal =
         uniqueSteps = nubBy (\a b -> a.clauseId == b.clauseId) allSteps
     in sortOn clauseId uniqueSteps
 
-
+-- Given a a derived clause 
+-- Saves a proof of how that clause was derived to a file 
 writeProofToFile :: FilePath -> Maybe DerivedClause -> IO ()
 writeProofToFile _ Nothing = putStrLn "No Proof Found"
 writeProofToFile path (Just goal) = do
@@ -36,9 +35,3 @@ writeProofToFile path (Just goal) = do
     let proofString = unlines (map formatStep proofSteps)
     writeFile path proofString
     putStrLn $ "Proof written to " ++ path
-
-writeSearchToFile :: FilePath -> ProofSearch -> IO ()
-writeSearchToFile path searchState = do
-    let jsonData = encodePretty searchState
-    B.writeFile path jsonData
-    putStrLn $ "Search state written to " ++ path

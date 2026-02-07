@@ -1,8 +1,8 @@
-module Subsumption.Subsumption 
+module Subsumption.Subsumption
     (
-        groundClause, 
-        getVarsInClause, 
-        isSubsumedByPassiveSet,
+        groundClause,
+        getVarsInClause,
+        isSubsumedBySeenClauses,
         isSubsumedBy,
         canMatch,
         matchLiterals,
@@ -38,9 +38,9 @@ getVarsInClause (Clause lits) = nub $ concatMap getVarsInLit lits
 
 
 -- Returns true if a clause in the trie subsumes the clause C
-isSubsumedByPassiveSet :: Clause -> [String] -> ClauseTrie -> Bool
-isSubsumedByPassiveSet c ordering trie =
-    any (isSubsumedBy c) candidateClauses
+isSubsumedBySeenClauses :: Clause -> [String] -> ClauseTrie -> Bool
+isSubsumedBySeenClauses c ordering trie =
+    any (`isSubsumedBy` c) candidateClauses
     where
         featureVector = getFeatureVector c
         candidateClauses = retrieveAllPossiblySubsumingClauses ordering featureVector trie
@@ -80,7 +80,7 @@ canMatch (Clause cLiterals) (Clause dLiterals) = matchRemaining cLiterals Map.em
 
 matchLiterals :: Literal -> Literal -> Sub -> Maybe Sub
 matchLiterals (Pos p) (Pos q) sub = matchPredicates p q sub
-matchLiterals (Neg p) (Neg q) sub = matchPredicates p q sub 
+matchLiterals (Neg p) (Neg q) sub = matchPredicates p q sub
 matchLiterals _ _ _ = Nothing
 
 
@@ -103,7 +103,7 @@ matchTerms (x:xs) (y:ys) sub =
             Nothing -> Nothing
             Just newSub -> matchTerms xs ys newSub
 matchTerms _ _ _ = Nothing
- 
+
 
 matchTerm :: Term -> Term -> Sub -> Maybe Sub
 matchTerm (Var x) t2 sub =
