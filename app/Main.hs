@@ -28,6 +28,7 @@ import Options.Applicative
       Parser )
 import Parser (parseTPTP)
 import Text.Megaparsec (errorBundlePretty)
+import Control.Lens ( (^.) )
 import FOL ( Clause(Clause) )
 import HandleProof ( writeProofToFile )
 import Control.Monad.State ( evalState )
@@ -35,7 +36,7 @@ import Config (loadConfig, defaultConfig, Config(..))
 import PassiveQueue ( pqConfigToPQ )
 import Filtering ( composeFilteringTypesIntoFilterFunction )
 import GivenClauseLoop.State
-    ( ProofSearch(_isUnsat, _derivation), initialiseState )
+    ( ProofSearch(_derivation), initialiseState, isUnsat )
 import GivenClauseLoop.Solver ( solve )
 
 
@@ -95,4 +96,6 @@ runProver inputFile mOutputFile mConfigFile = do
                 Just path -> writeProofToFile path proof._derivation
                 Nothing   -> putStrLn "No output file specified; skipping file save."
 
-            print proof._isUnsat
+            case proof ^. isUnsat of 
+                Nothing -> print "Nothing"
+                Just x -> print x 

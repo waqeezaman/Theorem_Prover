@@ -138,6 +138,7 @@ executable Theorem-Prover
         optparse-applicative,
         text,
         pqueue,
+        lens,
         Theorem-Prover
 
     -- Directories containing source files.

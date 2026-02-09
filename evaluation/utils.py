@@ -6,7 +6,7 @@ def isProblemUnsatisfiable(problem_path: str) -> bool:
     with open(problem_path, "r", encoding="utf-8") as f:
         problem: str = f.read()
         
-    return "Unsatisfiable" in problem
+    return "True" if "Unsatisfiable" in problem else "False"
 
 
 """
@@ -28,6 +28,27 @@ def withEquality(problem_path):
         problem: str = f.read()
         
     return "=" in problem
+
+
+def parseProverOutput(proofOutput: str) -> str:
+    proofOutput = proofOutput.strip().splitlines()[-1]
+        
+    if proofOutput not in ["True", "False"]:
+        return "Unexpected Output: " + proofOutput
+    
+    return proofOutput
+
+
+def parseIproverOutput(proofOutput:str) -> str:
+    proofOutput = proofOutput.strip()
+    
+    if "% SZS status Satisfiable" in proofOutput or "% SZS status CounterSatisfiable" in proofOutput: 
+        return "False"
+
+    if "% SZS status Unsatisfiable" in proofOutput or "SZS status Theorem" in proofOutput: 
+        return "True"
+
+    return "Unexpected Output: " + proofOutput
 
 if __name__ == "__main__": 
     pass

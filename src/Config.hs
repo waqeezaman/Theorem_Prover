@@ -24,11 +24,11 @@ defaultConfig = Config
         stopAfterNSteps = Nothing, 
         passiveQueues = [
             PQConfig{
-                weightConfig = 10,
+                weightConfig = 1,
                 pqTypeConfig = Age
             },
             PQConfig {
-                weightConfig = 1,
+                weightConfig = 10,
                 pqTypeConfig = Weight
             }
         ]
