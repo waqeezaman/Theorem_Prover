@@ -80,8 +80,11 @@ library
         GivenClauseLoop.InferenceGeneration,
         GivenClauseLoop.PassiveQueueHandling,
         GivenClauseLoop.Solver,
+        GivenClauseLoop.Timing,
+        GivenClauseLoop.Termination,
         Subsumption.SubsumptionFilter,
         Subsumption.Subsumption,
+        Scheduler, 
         PassiveQueue,
         Filtering,
         Config
@@ -94,6 +97,7 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:    
+        stm ^>=2.5.1.0,
         megaparsec ^>=9.7.0,
         base ^>=4.17.2.1,
         extra,
@@ -104,7 +108,9 @@ library
         text,
         pqueue,
         mtl,
-        lens
+        lens,
+        time>=1.12.2,
+        async
 
     -- Directories containing source files.
     hs-source-dirs:   src

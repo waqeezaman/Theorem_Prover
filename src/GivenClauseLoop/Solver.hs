@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-module GivenClauseLoop.Solver (solve) where 
+module GivenClauseLoop.Solver (solve) where
 
-import Control.Lens ( use, (%=), (+=), (.=) ) 
-import Control.Monad.State ( MonadState(get) ) 
+import Control.Lens ( use, (%=), (+=), (.=) )
+import Control.Monad.State ( MonadState(get), gets )
 
 import GivenClauseLoop.State
     ( ProofSearch,
@@ -13,8 +13,8 @@ import GivenClauseLoop.State
       clauseTrie,
       isUnsat,
       stepsTaken,
-      stopAfterNSteps,
-      symbolOrdering ) 
+      symbolOrdering,
+      startTime, terminatingFunction )
 
 import GivenClauseLoop.InferenceGeneration ( performInferences )
 import GivenClauseLoop.PassiveQueueHandling
@@ -22,19 +22,22 @@ import GivenClauseLoop.PassiveQueueHandling
 import Subsumption.SubsumptionFilter
     ( getFeatureVector, insertInClauseTrie )
 import GivenClauseLoop.Types ( DerivedClause(derived) )
+import GivenClauseLoop.Timing (updateTimeElapsed)
 
 
 -- Primary Given Clause Loop
 solve :: ProofSearchState ProofSearch
 solve = do
     unsat <- use isUnsat
-    steps <- use stepsTaken
-    stepsLimit <- use stopAfterNSteps
+    terminateFunction <- use terminatingFunction
+    terminateSearch <- case terminateFunction of
+        Just f -> gets f
+        Nothing -> return False
 
-    case (unsat, steps, stepsLimit) of
+    case (unsat, terminateSearch) of
         -- The formula is either satisfiable or unsatisfiable
-        (Just _, _, _) -> get
-        (_, steps, Just limit) | steps >= limit -> get
+        (Just _, _) -> get
+        (_, True) -> get
         _ -> do
             maybeGivenClause <- selectClauseFromPassiveQueue
 
@@ -55,5 +58,6 @@ solve = do
                     clauseTrie %= insertInClauseTrie ordering givenClause.derived (getFeatureVector givenClause.derived)
                     switchPassiveQueue
                     stepsTaken += 1
+                    startTime <- use startTime
+                    updateTimeElapsed startTime
                     solve
-                    

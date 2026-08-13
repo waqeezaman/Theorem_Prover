@@ -4,3 +4,11 @@
 dist-newstyle/
 
 venv/
+**__pycache__/
+
+.vscode/
+
+firstorder_logic.pdf
+
+results/
+*.p

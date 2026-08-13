@@ -1,8 +1,8 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use ++" #-}
 {-# HLINT ignore "Use tuple-section" #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE OverloadedRecordDot #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Main where
 
@@ -31,14 +31,11 @@ import Text.Megaparsec (errorBundlePretty)
 import Control.Lens ( (^.) )
 import FOL ( Clause(Clause) )
 import HandleProof ( writeProofToFile )
-import Control.Monad.State ( evalState )
-import Config (loadConfig, defaultConfig, Config(..))
-import PassiveQueue ( pqConfigToPQ )
-import Filtering ( composeFilteringTypesIntoFilterFunction )
 import GivenClauseLoop.State
-    ( ProofSearch(_derivation), initialiseState, isUnsat )
-import GivenClauseLoop.Solver ( solve )
-
+    ( ProofSearch(_derivation), isUnsat )
+import Config
+    ( defaultProofSearchConfig, loadProofSearchConfig )
+import Scheduler (runSchedule)
 
 data ProverMode = WriteProof | NSteps | ProofSearch | Solver | SubsumptionProof | SubsumptionSolve
 
@@ -72,30 +69,27 @@ main = do
 runWithOptions :: Options -> IO ()
 runWithOptions opts = runProver opts.input opts.output opts.config
 
+
 runProver :: FilePath -> Maybe FilePath -> Maybe FilePath -> IO ()
-runProver inputFile mOutputFile mConfigFile = do
+runProver inputFile outputFile configFile = do
     contents <- readFile inputFile
     case parseTPTP contents of
         Left parseError -> do
-            putStrLn "Parser Error"
-            putStrLn (errorBundlePretty parseError)
+            print "Parser Error"
+            print (errorBundlePretty parseError)
         Right clauses -> do
             let axioms = map Clause clauses
-            
-            config <- case mConfigFile of
-                        Just path -> loadConfig path
-                        Nothing   -> return defaultConfig
+            config <- case configFile of
+                        Just path -> loadProofSearchConfig path
+                        Nothing   -> return defaultProofSearchConfig
+            proofSearchOutput <- runSchedule config axioms
 
-            let passiveQueues = map pqConfigToPQ config.passiveQueues
-            let filterFunction = composeFilteringTypesIntoFilterFunction config.filterFunction
-            let initialState = initialiseState axioms config.stopAfterNSteps passiveQueues filterFunction
-            
-            let proof = evalState solve initialState
-
-            case mOutputFile of
-                Just path -> writeProofToFile path proof._derivation
-                Nothing   -> putStrLn "No output file specified; skipping file save."
-
-            case proof ^. isUnsat of 
-                Nothing -> print "Nothing"
-                Just x -> print x 
+            case proofSearchOutput of
+                Nothing -> print "No proof found within constraints"
+                Just proof -> do
+                    case outputFile of
+                        Just path -> writeProofToFile path proof._derivation
+                        Nothing   -> print "No output file specified; skipping file save."
+                    case proof ^. isUnsat of
+                        Nothing -> print "Nothing"
+                        Just x -> print x

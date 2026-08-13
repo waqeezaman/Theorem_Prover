@@ -18,16 +18,26 @@ NOTE: These results were gathered using a subset of the PUZ TPTP set that does n
 Config for my prover
 ```json
 {
-  "filterFunction": ["RemoveTautologies", "ForwardSubsumption"],
-  "stopAfterNSteps": null,
-  "passiveQueues": [
+  "totalTimeLimit": 60,
+  "threads": 1,
+  "schedule": [
     {
-      "pqTypeConfig": "Age",
-      "weightConfig": 1
-    },
-    {
-      "pqTypeConfig": "Weight",
-      "weightConfig": 10
+      "filterFunction": [
+        "RemoveTautologies",
+        "ForwardSubsumption"
+      ],
+      "stopAfterNSteps": null,
+      "passiveQueues": [
+        {
+          "pqTypeConfig": "Age",
+          "weightConfig": 1
+        },
+        {
+          "pqTypeConfig": "Weight",
+          "weightConfig": 10
+        }
+      ],
+      "timeLimit": null
     }
   ]
 }
@@ -92,6 +102,47 @@ The prover accepts TPTP format files in clausal normal form (CNF). Input files s
 | Output file | Saves proof derivation to the specified file if it is found |
 
 
+### Scheduler
+
+The prover includes a parallel **scheduler** ([src/Scheduler.hs](src/Scheduler.hs)) that enables trying multiple proof search strategies concurrently across multiple threads. By running diverse strategies in parallel, the prover can explore different parts of the search space simultaneously to find proofs faster.
+
+#### How the Scheduler Works
+
+1. **Job Queue Initialization**: A thread-safe queue (`TVar`) is initialized containing all strategies specified in the `schedule` list of the configuration.
+2. **Parallel Worker Pool**: The scheduler spawns `threads` worker threads. Each thread pops the next strategy off the shared queue and runs the Given Clause Loop solver ([src/GivenClauseLoop/Solver.hs](src/GivenClauseLoop/Solver.hs)).
+3. **Strategy Termination & Handover**: If a strategy hits its individual `timeLimit` or `stopAfterNSteps` without finding unsatisfiability, the thread completes that strategy execution and automatically pulls the next strategy from the queue.
+4. **Early Proof Cancellation**: When any worker thread successfully derives `False` (unsatisfiability) or saturates the search space (satisfiability), it publishes the final proof state to a shared synchronization variable (`MVar`) and immediately cancels all other active worker threads.
+5. **Global Wall-Clock Timeout**: The top-level `totalTimeLimit` imposes a strict global timeout (in seconds) across all threads. If no strategy finds a proof within this time limit, execution terminates gracefully.
+
+#### Scheduler Architecture Flowchart
+
+```mermaid
+graph TD
+    A[Input Axioms and Config] --> B[Initialize TVar Job Queue]
+    B --> C[Spawn Worker Threads]
+
+    subgraph WorkerLoop [Worker Thread Loop]
+        D[Pop Next Strategy from Queue]
+        E{Strategy Available?}
+        F[Run Given Clause Solver]
+        G{Proof Found?}
+        H[Publish Proof Result to MVar]
+        I[Thread Retires]
+
+        D --> E
+        E -->|Yes| F
+        E -->|No| I
+        F --> G
+        G -->|Yes| H
+        G -->|No| D
+    end
+
+    C --> D
+    H --> J[Cancel All Other Active Workers]
+    J --> K[Return Proof Derivation]
+```
+
+
 ### Configuration
 
 The prover behavior can be customized via a JSON configuration file. If no config is specified, the default configuration is used.
@@ -100,16 +151,44 @@ The prover behavior can be customized via a JSON configuration file. If no confi
 
 ```json
 {
-  "filterFunction": ["RemoveTautologies", "ForwardSubsumption"],
-  "stopAfterNSteps": null,
-  "passiveQueues": [
+  "totalTimeLimit": 30,
+  "threads": 2,
+  "schedule": [
     {
-      "pqTypeConfig": "Age",
-      "weightConfig": 1
+      "filterFunction": [
+        "RemoveTautologies",
+        "ForwardSubsumption"
+      ],
+      "stopAfterNSteps": null,
+      "passiveQueues": [
+        {
+          "pqTypeConfig": "Age",
+          "weightConfig": 5
+        },
+        {
+          "pqTypeConfig": "Weight",
+          "weightConfig": 1
+        }
+      ],
+      "timeLimit": 30
     },
     {
-      "pqTypeConfig": "Weight",
-      "weightConfig": 10
+      "filterFunction": [
+        "RemoveTautologies",
+        "ForwardSubsumption"
+      ],
+      "stopAfterNSteps": null,
+      "passiveQueues": [
+        {
+          "pqTypeConfig": "Age",
+          "weightConfig": 10
+        },
+        {
+          "pqTypeConfig": "Weight",
+          "weightConfig": 1
+        }
+      ],
+      "timeLimit": 30
     }
   ]
 }
@@ -117,37 +196,27 @@ The prover behavior can be customized via a JSON configuration file. If no confi
 
 #### Configuration Options
 
-**`filterFunction`** (array of strings)
-- List of filtering strategies applied to newly derived clauses
-- Available filters:
-  - `RemoveTautologies`: Discards tautologies (e.g. `p(X) | ~p(X)`)
-  - `ForwardSubsumption`: Discards clauses that are subsumed by previously derived clauses
-  - `NoFilter`: Discards zero clauses 
-- Filters are combined with logical AND; a clause is kept only if it is accepted by all filters
+##### Top-Level Configuration (`ProofSearchConfig`)
 
-**`stopAfterNSteps`** (integer or null)
-- Maximum number of iterations before terminating the search
-- `null` means no step limit (search continues until saturation or unsatisfiability is found)
-- Default: `null`
+- **`totalTimeLimit`** (integer or `null`): global timeout (in seconds) for the entire prover execution across all threads. `null` means no global timeout.
+- **`threads`** (integer): Number of parallel worker threads spawned to execute jobs from the schedule queue.
+- **`schedule`** (array of strategy objects): List of strategy configurations (`SingleProofSearchOptions`) to be executed.
 
-**`passiveQueues`** (array of queue configurations)
-- Defines priority queues for ordering passive clauses
-- Each queue uses a configurable priority strategy
-- Clauses are selected from each queue in turn according to the weights for each queue 
+##### Strategy Configuration (`SingleProofSearchOptions`)
 
-##### Passive Queue Configuration
+- **`filterFunction`** (array of strings): List of filtering strategies applied to newly derived clauses. Available filters:
+  - `RemoveTautologies`: Discards tautologies (e.g. `p(X) | ~p(X)`).
+  - `ForwardSubsumption`: Discards clauses that are subsumed by previously derived clauses.
+  - `NoFilter`: Discards zero clauses.
+  - Filters are combined with logical AND; a clause is kept only if accepted by all specified filters.
 
-Each queue in `passiveQueues` has:
+- **`stopAfterNSteps`** (integer or `null`): Maximum Given clause loop iterations for this strategy before terminating and moving to the next job. `null` means no step limit.
 
-- **`pqTypeConfig`**: Priority ordering strategy
-  - `"Age"`: Clauses are ordered by the order in which they were derived 
-  - `"Weight"`: Clauses are prioritised by syntactic weight (number of symbols)
+- **`passiveQueues`** (array of queue configurations): Defines priority queues for ordering passive clauses. Clauses are selected from each queue in turn according to their assigned weight.
+  - **`pqTypeConfig`**: Priority strategy (`"Age"` for derivation order, `"Weight"` for syntactic symbol count).
+  - **`weightConfig`**: Number of clauses selected from this queue before switching to the next queue.
 
-- **`weightConfig`**: The number of clauses that will be selected from this queue before moving on to the next queue 
-
-**Example**: The default configuration uses two queues:
-1. Age queue with weight 1: Selects older clauses, but with lower priority
-2. Weight queue with weight 10: Selects lighter clauses, with higher priority
+- **`timeLimit`** (float/integer or `null`): timeout (in seconds) for this individual strategy execution. `null` means no per-strategy time limit.
 
 
 ### Examples
