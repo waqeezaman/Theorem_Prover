@@ -32,12 +32,15 @@ def withEquality(problem_path):
 
 def parseProverOutput(proofOutput: str) -> str:
     proofOutput = proofOutput.strip().splitlines()[-1]
-        
-    if proofOutput not in ["True", "False"]:
-        return "Unexpected Output: " + proofOutput
     
-    return proofOutput
-
+    if proofOutput == "True" or proofOutput == "False":
+        return proofOutput
+    
+    if proofOutput == "No proof found within constraints":
+        return "Timeout"
+        
+    return "Unexpected Output: " + proofOutput
+    
 
 def parseIproverOutput(proofOutput:str) -> str:
     proofOutput = proofOutput.strip()
@@ -47,6 +50,9 @@ def parseIproverOutput(proofOutput:str) -> str:
 
     if "% SZS status Unsatisfiable" in proofOutput or "SZS status Theorem" in proofOutput: 
         return "True"
+    
+    if "Time Out Real" in proofOutput: 
+        return "Timeout"
 
     return "Unexpected Output: " + proofOutput
 
