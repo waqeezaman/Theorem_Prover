@@ -75,7 +75,7 @@ runProver inputFile outputFile configFile = do
     contents <- readFile inputFile
     case parseTPTP contents of
         Left parseError -> do
-            print "Parser Error"
+            putStrLn "Parser Error"
             print (errorBundlePretty parseError)
         Right clauses -> do
             let axioms = map Clause clauses
@@ -85,11 +85,11 @@ runProver inputFile outputFile configFile = do
             proofSearchOutput <- runSchedule config axioms
 
             case proofSearchOutput of
-                Nothing -> print "No proof found within constraints"
+                Nothing -> putStrLn "No proof found within constraints"
                 Just proof -> do
                     case outputFile of
                         Just path -> writeProofToFile path proof._derivation
-                        Nothing   -> print "No output file specified; skipping file save."
+                        Nothing   -> putStrLn "No output file specified; skipping file save."
                     case proof ^. isUnsat of
-                        Nothing -> print "Nothing"
+                        Nothing -> putStrLn "No proof found within constraints"
                         Just x -> print x
