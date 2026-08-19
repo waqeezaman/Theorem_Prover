@@ -1,0 +1,24 @@
+{
+  "totalTimeLimit": 60,
+  "threads": 1,
+  "schedule": [
+    {
+      "filterFunction": [
+        "RemoveTautologies",
+        "ForwardSubsumption"
+      ],
+      "stopAfterNSteps": null,
+      "passiveQueues": [
+        {
+          "pqTypeConfig": "Age",
+          "weightConfig": 1
+        },
+        {
+          "pqTypeConfig": "Weight",
+          "weightConfig": 10
+        }
+      ],
+      "timeLimit": null
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "totalTimeLimit": 60,
+  "threads": 2,
+  "schedule": [
+    {
+      "filterFunction": [
+        "RemoveTautologies",
+        "ForwardSubsumption"
+      ],
+      "stopAfterNSteps": null,
+      "passiveQueues": [
+        {
+          "pqTypeConfig": "Age",
+          "weightConfig": 1
+        },
+        {
+          "pqTypeConfig": "Weight",
+          "weightConfig": 10
+        }
+      ],
+      "timeLimit": 15
+    },
+    {
+        "filterFunction": [
+        "RemoveTautologies",
+        "ForwardSubsumption"
+        ],
+        "stopAfterNSteps": null,
+        "passiveQueues": [
+        {
+            "pqTypeConfig": "Age",
+            "weightConfig": 1
+        },
+        {
+            "pqTypeConfig": "Weight",
+            "weightConfig": 5
+        }
+        ],
+        "timeLimit": 15
+    },
+    {
+      "filterFunction": [
+        "RemoveTautologies",
+        "ForwardSubsumption"
+      ],
+      "stopAfterNSteps": null,
+      "passiveQueues": [
+        {
+          "pqTypeConfig": "Weight",
+          "weightConfig": 1
+        }
+      ],
+      "timeLimit": 15
+    },
+    {
+      "filterFunction": [
+        "RemoveTautologies",
+        "ForwardSubsumption"
+      ],
+      "stopAfterNSteps": null,
+      "passiveQueues": [
+        {
+          "pqTypeConfig": "Age",
+          "weightConfig": 1
+        }
+      ],
+      "timeLimit": 5
+    },
+    {
+      "filterFunction": [
+        "RemoveTautologies",
+        "ForwardSubsumption"
+      ],
+      "stopAfterNSteps": null,
+      "passiveQueues": [
+        {
+          "pqTypeConfig": "Age",
+          "weightConfig": 1
+        },
+        {
+          "pqTypeConfig": "Weight",
+          "weightConfig": 3
+        }
+      ],
+      "timeLimit": null
+    }
+
+  ]
+}

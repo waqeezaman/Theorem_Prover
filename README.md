@@ -8,12 +8,18 @@ A First-Order Logic automated theorem prover written in **Haskell**. This tool i
 
 | Prover | Number of Problems Solved | Average Solve Time on Solved Instances|
 | :--- | :--- | :--- |
-| My Prover | 19 | 2.5197s |
+| My Prover - No Schedule - Single Core | 19 | 2.5197s |
+| My Prover - Schedule - Two Cores | 20 | 1.3575s |  
 | iProver | 39 | 0.0498s | 
+| 
 
 NOTE: A 60 second time limit was used when gathering these results 
 
 NOTE: These results were gathered using a subset of the PUZ TPTP set that does not use equality or references to axiom files, because our prover does not support this yet.
+
+NOTE: The config files used for my prover can be found in configs/.
+
+NOTE: iProver was ran with no schedule, using its default configuration and a single core.
 
 Config for my prover
 ```json
